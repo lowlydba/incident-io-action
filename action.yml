@@ -33,12 +33,10 @@ inputs:
       not provided'
     required: false
   source-url:
-    description:
-      'Link to the alert source. Defaults to workflow run URL if not provided'
+    description: 'Link to the alert source. Defaults to workflow run URL if not provided'
     required: false
   metadata:
-    description:
-      'Additional metadata as JSON string (e.g., {"service": "api",
+    description: 'Additional metadata as JSON string (e.g., {"service": "api",
       "environment": "production"})'
     required: false
     default: '{}'
