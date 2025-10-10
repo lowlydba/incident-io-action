@@ -6,7 +6,8 @@
 [![CodeQL](https://github.com/lowlydba/incident-io-action/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/lowlydba/incident-io-action/actions/workflows/codeql-analysis.yml)
 [![Coverage](./badges/coverage.svg)](./badges/coverage.svg)
 
-> [!NOTE] This is an unofficial, community-created GitHub Action and is not
+> [!NOTE]
+> This is an unofficial, community-created GitHub Action and is not
 > affiliated with, endorsed by, or supported by incident.io. incident.io and its
 > associated trademarks are property of incident.io Ltd.
 
