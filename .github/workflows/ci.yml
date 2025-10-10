@@ -61,6 +61,7 @@ jobs:
         uses: ./
         with:
           incident-io-token: ${{ secrets.INCIDENT_IO_TOKEN }}
+          alert-source-config-id: '01K77NXDEHQPQAN0Y0A1600D1N'
           title: 'CI Test Alert - Firing'
           status: 'firing'
           description: |
@@ -93,6 +94,7 @@ jobs:
         uses: ./
         with:
           incident-io-token: ${{ secrets.INCIDENT_IO_TOKEN }}
+          alert-source-config-id: '01K77NXDEHQPQAN0Y0A1600D1N'
           title: 'CI Test Alert - Resolved'
           status: 'resolved'
           description: 'CI test alert has been resolved.'
