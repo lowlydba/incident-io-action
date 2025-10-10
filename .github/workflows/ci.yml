@@ -57,8 +57,16 @@ jobs:
         id: test-action
         uses: ./
         with:
-          milliseconds: 2000
+          incident-io-token: 'test-token-do-not-use'
+          alert-source-config-id: 'test-config-id'
+          title: 'CI Test Alert'
+          status: 'firing'
+          description: 'This is a test alert from CI'
+          metadata: '{"service": "ci-test", "environment": "test"}'
+        continue-on-error: true
 
-      - name: Print Output
-        id: output
-        run: echo "${{ steps.test-action.outputs.time }}"
+      - name: Verify Action Ran
+        id: verify
+        run: |
+          echo "Action completed with status: ${{ steps.test-action.outcome }}"
+          echo "This test is expected to fail since we're using dummy credentials"

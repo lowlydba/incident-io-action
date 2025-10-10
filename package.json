@@ -1,20 +1,25 @@
 {
-  "name": "typescript-action",
-  "description": "GitHub Actions TypeScript template",
-  "version": "0.0.0",
-  "author": "",
+  "name": "incident-io-action",
+  "description": "GitHub Action to send alerts to incident.io",
+  "version": "1.0.0",
+  "author": "lowlydba",
   "type": "module",
   "private": true,
-  "homepage": "https://github.com/actions/typescript-action",
+  "homepage": "https://github.com/lowlydba/incident-io-action",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/actions/typescript-action.git"
+    "url": "git+https://github.com/lowlydba/incident-io-action.git"
   },
   "bugs": {
-    "url": "https://github.com/actions/typescript-action/issues"
+    "url": "https://github.com/lowlydba/incident-io-action/issues"
   },
   "keywords": [
-    "actions"
+    "actions",
+    "incident",
+    "alert",
+    "incident.io",
+    "monitoring",
+    "observability"
   ],
   "exports": {
     ".": "./dist/index.js"

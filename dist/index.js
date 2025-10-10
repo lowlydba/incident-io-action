@@ -27247,19 +27247,30 @@ function requireCore () {
 var coreExports = requireCore();
 
 /**
- * Waits for a number of milliseconds.
+ * Sends an alert to incident.io via their Alert Events V2 API
  *
- * @param milliseconds The number of milliseconds to wait.
- * @returns Resolves with 'done!' after the wait is over.
+ * @param token - The incident.io API token
+ * @param alertSourceConfigId - The alert source config ID
+ * @param payload - The alert event payload
+ * @returns The response from the incident.io API
  */
-async function wait(milliseconds) {
-    return new Promise((resolve) => {
-        if (isNaN(milliseconds))
-            throw new Error('milliseconds is not a number');
-        setTimeout(() => resolve('done!'), milliseconds);
+async function sendAlert(token, alertSourceConfigId, payload) {
+    const url = `https://api.incident.io/v2/alert_events/http/${alertSourceConfigId}?token=${encodeURIComponent(token)}`;
+    coreExports.debug(`Sending alert to incident.io: ${url}`);
+    coreExports.debug(`Payload: ${JSON.stringify(payload, null, 2)}`);
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
     });
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`incident.io API request failed with status ${response.status}: ${errorText}`);
+    }
+    return (await response.json());
 }
-
 /**
  * The main function for the action.
  *
@@ -27267,15 +27278,77 @@ async function wait(milliseconds) {
  */
 async function run() {
     try {
-        const ms = coreExports.getInput('milliseconds');
-        // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
-        coreExports.debug(`Waiting ${ms} milliseconds ...`);
-        // Log the current timestamp, wait, then log the new timestamp
-        coreExports.debug(new Date().toTimeString());
-        await wait(parseInt(ms, 10));
-        coreExports.debug(new Date().toTimeString());
-        // Set outputs for other workflow steps to use
-        coreExports.setOutput('time', new Date().toTimeString());
+        // Get inputs
+        const token = coreExports.getInput('incident-io-token', { required: true });
+        const alertSourceConfigId = coreExports.getInput('alert-source-config-id', {
+            required: true
+        });
+        const title = coreExports.getInput('title', { required: true });
+        const status = coreExports.getInput('status', { required: true });
+        const description = coreExports.getInput('description');
+        const deduplicationKey = coreExports.getInput('deduplication-key');
+        const sourceUrl = coreExports.getInput('source-url');
+        const metadataJson = coreExports.getInput('metadata');
+        // Validate status
+        if (status !== 'firing' && status !== 'resolved') {
+            throw new Error(`Invalid status: ${status}. Must be either "firing" or "resolved"`);
+        }
+        // Parse metadata JSON
+        let metadata = {};
+        if (metadataJson) {
+            try {
+                metadata = JSON.parse(metadataJson);
+            }
+            catch (error) {
+                throw new Error(`Failed to parse metadata JSON: ${error instanceof Error ? error.message : String(error)}`);
+            }
+        }
+        // Add GitHub workflow context to metadata
+        const githubContext = {
+            workflow: process.env.GITHUB_WORKFLOW || 'unknown',
+            workflow_id: process.env.GITHUB_RUN_ID || 'unknown',
+            workflow_run_number: process.env.GITHUB_RUN_NUMBER || 'unknown',
+            workflow_attempt: process.env.GITHUB_RUN_ATTEMPT || 'unknown',
+            job: process.env.GITHUB_JOB || 'unknown',
+            actor: process.env.GITHUB_ACTOR || 'unknown',
+            repository: process.env.GITHUB_REPOSITORY || 'unknown',
+            ref: process.env.GITHUB_REF || 'unknown',
+            sha: process.env.GITHUB_SHA || 'unknown',
+            event_name: process.env.GITHUB_EVENT_NAME || 'unknown'
+        };
+        // Merge user metadata with GitHub context
+        metadata = {
+            ...metadata,
+            github: githubContext
+        };
+        // Build the alert payload
+        const payload = {
+            title,
+            status
+        };
+        // Add optional fields
+        if (description) {
+            payload.description = description;
+        }
+        // Use provided deduplication key or default to GitHub run ID
+        payload.deduplication_key =
+            deduplicationKey || process.env.GITHUB_RUN_ID || `${Date.now()}`;
+        // Use provided source URL or default to GitHub workflow run URL
+        payload.source_url =
+            sourceUrl ||
+                `https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
+        payload.metadata = metadata;
+        coreExports.info(`Sending alert to incident.io...`);
+        coreExports.info(`Title: ${title}`);
+        coreExports.info(`Status: ${status}`);
+        coreExports.info(`Deduplication Key: ${payload.deduplication_key}`);
+        // Send the alert
+        const response = await sendAlert(token, alertSourceConfigId, payload);
+        coreExports.info(`Alert sent successfully!`);
+        coreExports.info(`Response: ${response.message}`);
+        // Set outputs
+        coreExports.setOutput('deduplication-key', response.deduplication_key);
+        coreExports.setOutput('response-status', response.status);
     }
     catch (error) {
         // Fail the workflow run if an error occurs

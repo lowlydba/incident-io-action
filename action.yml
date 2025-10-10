@@ -1,23 +1,52 @@
-name: The name of your action here
-description: Provide a description here
-author: Your name or organization here
+name: incident.io Alert Action
+description: Send alerts to incident.io from GitHub Actions workflows
+author: lowlydba
 
 # Add your action's branding here. This will appear on the GitHub Marketplace.
 branding:
-  icon: heart
+  icon: alert-circle
   color: red
 
 # Define your inputs here.
 inputs:
-  milliseconds:
-    description: Your input description here
+  incident-io-token:
+    description: 'incident.io API token for authentication'
     required: true
-    default: '1000'
+  alert-source-config-id:
+    description: 'The alert source config ID from incident.io'
+    required: true
+  title:
+    description: 'Title of the alert'
+    required: true
+  status:
+    description: 'Status of the alert (firing or resolved)'
+    required: true
+    default: 'firing'
+  description:
+    description: 'Description with additional details (supports markdown)'
+    required: false
+  deduplication-key:
+    description:
+      'Unique deduplication key for this alert. Defaults to workflow run ID if
+      not provided'
+    required: false
+  source-url:
+    description:
+      'Link to the alert source. Defaults to workflow run URL if not provided'
+    required: false
+  metadata:
+    description:
+      'Additional metadata as JSON string (e.g., {"service": "api",
+      "environment": "production"})'
+    required: false
+    default: '{}'
 
 # Define your outputs here.
 outputs:
-  time:
-    description: Your output description here
+  deduplication-key:
+    description: 'The deduplication key used for the alert'
+  response-status:
+    description: 'The response status from incident.io API'
 
 runs:
   using: node24
