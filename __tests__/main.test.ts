@@ -106,6 +106,28 @@ describe('main.ts', () => {
     expect(core.setOutput).toHaveBeenCalledWith('deduplication-key', 'test-key')
   })
 
+  it('Uses default alert source config ID when not provided', async () => {
+    // Override getInput to not return alert-source-config-id
+    core.getInput.mockImplementation((name: string) => {
+      const inputs: Record<string, string> = {
+        'incident-io-token': 'test-token',
+        'alert-source-config-id': '', // Empty, should use default
+        title: 'Test Alert',
+        status: 'firing',
+        metadata: '{}'
+      }
+      return inputs[name] || ''
+    })
+
+    await run()
+
+    // Verify fetch was called with default config ID
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('01GW2G3V0S59R238FAHPDS1R66'),
+      expect.anything()
+    )
+  })
+
   it('Includes GitHub workflow context in metadata', async () => {
     await run()
 

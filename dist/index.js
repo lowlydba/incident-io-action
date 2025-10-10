@@ -27280,9 +27280,8 @@ async function run() {
     try {
         // Get inputs
         const token = coreExports.getInput('incident-io-token', { required: true });
-        const alertSourceConfigId = coreExports.getInput('alert-source-config-id', {
-            required: true
-        });
+        const alertSourceConfigId = coreExports.getInput('alert-source-config-id', { required: false }) ||
+            '01GW2G3V0S59R238FAHPDS1R66';
         const title = coreExports.getInput('title', { required: true });
         const status = coreExports.getInput('status', { required: true });
         const description = coreExports.getInput('description');

@@ -15,7 +15,8 @@ inputs:
     required: true
   alert-source-config-id:
     description: 'The alert source config ID from incident.io'
-    required: true
+    required: false
+    default: '01GW2G3V0S59R238FAHPDS1R66'
   title:
     description: 'Title of the alert'
     required: true

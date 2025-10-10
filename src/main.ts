@@ -66,9 +66,9 @@ export async function run(): Promise<void> {
   try {
     // Get inputs
     const token = core.getInput('incident-io-token', { required: true })
-    const alertSourceConfigId = core.getInput('alert-source-config-id', {
-      required: true
-    })
+    const alertSourceConfigId =
+      core.getInput('alert-source-config-id', { required: false }) ||
+      '01GW2G3V0S59R238FAHPDS1R66'
     const title = core.getInput('title', { required: true })
     const status = core.getInput('status', { required: true }) as
       | 'firing'

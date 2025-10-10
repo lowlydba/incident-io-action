@@ -31,6 +31,11 @@ Before using this action, you need to:
 2. Create an HTTP alert source in incident.io
 3. Obtain your alert source config ID and token
 
+> **Note**: The action uses a default alert source config ID
+> (`01GW2G3V0S59R238FAHPDS1R66`) if you don't specify one. This is the default
+> ID shown in incident.io's API documentation. You can override this by
+> providing your own `alert-source-config-id` input.
+
 ## Usage
 
 ### Basic Example
@@ -94,16 +99,16 @@ jobs:
 
 ## Inputs
 
-| Input                    | Description                                                                                  | Required | Default  |
-| ------------------------ | -------------------------------------------------------------------------------------------- | -------- | -------- |
-| `incident-io-token`      | incident.io API token for authentication                                                     | Yes      | -        |
-| `alert-source-config-id` | The alert source config ID from incident.io                                                  | Yes      | -        |
-| `title`                  | Title of the alert                                                                           | Yes      | -        |
-| `status`                 | Status of the alert (`firing` or `resolved`)                                                 | Yes      | `firing` |
-| `description`            | Description with additional details (supports markdown)                                      | No       | -        |
-| `deduplication-key`      | Unique deduplication key for this alert. Defaults to GitHub workflow run ID if not provided  | No       | Run ID   |
-| `source-url`             | Link to the alert source. Defaults to GitHub workflow run URL if not provided                | No       | Run URL  |
-| `metadata`               | Additional metadata as JSON string (e.g., `{"service": "api", "environment": "production"}`) | No       | `{}`     |
+| Input                    | Description                                                                                  | Required | Default                      |
+| ------------------------ | -------------------------------------------------------------------------------------------- | -------- | ---------------------------- |
+| `incident-io-token`      | incident.io API token for authentication                                                     | Yes      | -                            |
+| `alert-source-config-id` | The alert source config ID from incident.io                                                  | No       | `01GW2G3V0S59R238FAHPDS1R66` |
+| `title`                  | Title of the alert                                                                           | Yes      | -                            |
+| `status`                 | Status of the alert (`firing` or `resolved`)                                                 | Yes      | `firing`                     |
+| `description`            | Description with additional details (supports markdown)                                      | No       | -                            |
+| `deduplication-key`      | Unique deduplication key for this alert. Defaults to GitHub workflow run ID if not provided  | No       | Run ID                       |
+| `source-url`             | Link to the alert source. Defaults to GitHub workflow run URL if not provided                | No       | Run URL                      |
+| `metadata`               | Additional metadata as JSON string (e.g., `{"service": "api", "environment": "production"}`) | No       | `{}`                         |
 
 ## Outputs
 
@@ -190,6 +195,25 @@ need to perform some initial setup steps before you can develop your action.
 
    Make sure to review and update [`.env.example`](./.env.example) with the
    required inputs for this action.
+
+### CI/CD Testing
+
+The CI workflow includes end-to-end testing with a real incident.io instance. To
+enable this in your fork, you'll need to add the following repository secrets:
+
+- `INCIDENT_IO_TOKEN` - Your incident.io API token
+- `INCIDENT_IO_ALERT_SOURCE_ID` - Your alert source config ID
+
+The E2E tests will:
+
+1. Send a "firing" alert to incident.io
+2. Verify the alert was created successfully
+3. Wait briefly
+4. Send a "resolved" alert with the same deduplication key
+5. Verify the resolution was successful
+
+> **Note**: E2E tests only run on pushes to the main repository or PRs from
+> branches within the same repository (not forks) to protect secrets.
 
 ## Versioning
 
