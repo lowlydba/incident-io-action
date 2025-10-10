@@ -29,8 +29,8 @@ metadata, making it easy to track which workflows triggered alerts.
 Before using this action, you need to:
 
 1. Have an [incident.io](https://incident.io) account
-2. Create an HTTP alert source in incident.io
-3. Obtain your alert source config ID and token
+1. Create an HTTP alert source in incident.io
+1. Obtain your alert source config ID and token
 
 > **Note**: The action uses a default alert source config ID
 > (`01GW2G3V0S59R238FAHPDS1R66`) if you don't specify one. This is the default
@@ -106,7 +106,7 @@ jobs:
 | `alert-source-config-id` | The alert source config ID from incident.io                                                  | No       | `01GW2G3V0S59R238FAHPDS1R66` |
 | `title`                  | Title of the alert                                                                           | Yes      | -                            |
 | `status`                 | Status of the alert (`firing` or `resolved`)                                                 | Yes      | `firing`                     |
-| `description`            | Description with additional details (supports markdown)                                      | No       | -                            |
+| `description`            | Description with additional details (supports Markdown)                                      | No       | -                            |
 | `deduplication-key`      | Unique deduplication key for this alert. Defaults to GitHub workflow run ID if not provided  | No       | Run ID                       |
 | `source-url`             | Link to the alert source. Defaults to GitHub workflow run URL if not provided                | No       | Run URL                      |
 | `metadata`               | Additional metadata as JSON string (e.g., `{"service": "api", "environment": "production"}`) | No       | `{}`                         |
@@ -129,7 +129,7 @@ alert metadata under the `github` key:
 - `workflow_attempt` - Attempt number if re-run
 - `job` - Name of the job
 - `actor` - User who triggered the workflow
-- `repository` - Repository name (owner/repo)
+- `repository` - Repository name (owner/repository)
 - `ref` - Git reference (branch/tag)
 - `sha` - Commit SHA
 - `event_name` - Event that triggered the workflow
@@ -186,7 +186,7 @@ need to perform some initial setup steps before you can develop your action.
    > you do not run this step, your action will not work correctly when it is
    > used in a workflow.
 
-2. (Optional) Test your action locally
+1. (Optional) Test your action locally
 
    The [`@github/local-action`](https://github.com/github/local-action) utility
    can be used to test your action locally. It is a simple command-line tool
@@ -204,19 +204,19 @@ enable this in your fork, you'll need to add the following repository secret:
 
 - `INCIDENT_IO_TOKEN` - Your incident.io API token
 
-The E2E tests use the default alert source config ID
+The end-to-end tests use the default alert source config ID
 (`01GW2G3V0S59R238FAHPDS1R66`). If you want to use a different alert source, you
 can optionally add:
 
 - `INCIDENT_IO_ALERT_SOURCE_ID` - Your custom alert source config ID
 
-The E2E tests will:
+The end-to-end tests will:
 
 1. Send a "firing" alert to incident.io
-2. Verify the alert was created successfully
-3. Wait briefly
-4. Send a "resolved" alert with the same deduplication key
-5. Verify the resolution was successful
+1. Verify the alert was created successfully
+1. Wait briefly
+1. Send a "resolved" alert with the same deduplication key
+1. Verify the resolution was successful
 
 > **Note**: E2E tests only run on pushes to the main repository or PRs from
 > branches within the same repository (not forks) to protect secrets.
@@ -254,9 +254,9 @@ Contributions are welcome! Please feel free to submit a Pull Request. Make sure
 to:
 
 1. Follow the existing code style
-2. Add tests for new functionality
-3. Update documentation as needed
-4. Run `npm run all` before submitting
+1. Add tests for new functionality
+1. Update documentation as needed
+1. Run `npm run all` before submitting
 
 For more details, see the
 [Copilot Instructions](.github/copilot-instructions.md).
