@@ -1,37 +1,145 @@
-# Create a GitHub Action Using TypeScript
+# incident.io Alert Action
 
-[![GitHub Super-Linter](https://github.com/actions/typescript-action/actions/workflows/linter.yml/badge.svg)](https://github.com/super-linter/super-linter)
-![CI](https://github.com/actions/typescript-action/actions/workflows/ci.yml/badge.svg)
-[![Check dist/](https://github.com/actions/typescript-action/actions/workflows/check-dist.yml/badge.svg)](https://github.com/actions/typescript-action/actions/workflows/check-dist.yml)
-[![CodeQL](https://github.com/actions/typescript-action/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/actions/typescript-action/actions/workflows/codeql-analysis.yml)
+[![GitHub Super-Linter](https://github.com/lowlydba/incident-io-action/actions/workflows/linter.yml/badge.svg)](https://github.com/super-linter/super-linter)
+![CI](https://github.com/lowlydba/incident-io-action/actions/workflows/ci.yml/badge.svg)
+[![Check dist/](https://github.com/lowlydba/incident-io-action/actions/workflows/check-dist.yml/badge.svg)](https://github.com/lowlydba/incident-io-action/actions/workflows/check-dist.yml)
+[![CodeQL](https://github.com/lowlydba/incident-io-action/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/lowlydba/incident-io-action/actions/workflows/codeql-analysis.yml)
 [![Coverage](./badges/coverage.svg)](./badges/coverage.svg)
 
-Use this template to bootstrap the creation of a TypeScript action. :rocket:
+> [!NOTE]
+> This is an unofficial, community-created GitHub Action and is not
+> affiliated with, endorsed by, or supported by incident.io. incident.io and its
+> associated trademarks are property of incident.io Ltd.
 
-This template includes compilation support, tests, a validation workflow,
-publishing, and versioning guidance.
+A GitHub Action to send alerts to incident.io using their Alert Events V2 API.
+This action automatically includes GitHub workflow context in the alert
+metadata, making it easy to track which workflows triggered alerts.
 
-If you are new, there's also a simpler introduction in the
-[Hello world JavaScript action repository](https://github.com/actions/hello-world-javascript-action).
+## Features
 
-## Create Your Own Action
+- 🚨 Send alerts to incident.io from your GitHub workflows
+- 🔄 Automatic deduplication using GitHub run IDs
+- 📊 Includes comprehensive GitHub workflow context in metadata
+- 🔗 Automatic linking back to workflow runs
+- ✅ Supports both "firing" and "resolved" alert statuses
+- 🎨 Customizable with additional metadata
 
-To create your own action, you can use this repository as a template! Just
-follow the below instructions:
+## Prerequisites
 
-1. Click the **Use this template** button at the top of the repository
-1. Select **Create a new repository**
-1. Select an owner and name for your new repository
-1. Click **Create repository**
-1. Clone your new repository
+Before using this action, you need to:
 
-> [!IMPORTANT]
->
-> Make sure to remove or update the [`CODEOWNERS`](./CODEOWNERS) file! For
-> details on how to use this file, see
-> [About code owners](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners).
+1. Have an [incident.io](https://incident.io) account
+1. Create an HTTP alert source in incident.io
+1. Obtain your alert source config ID and token
 
-## Initial Setup
+> **Note**: The action uses a default alert source config ID
+> (`01GW2G3V0S59R238FAHPDS1R66`) if you don't specify one. This is the default
+> ID shown in incident.io's API documentation. You can override this by
+> providing your own `alert-source-config-id` input.
+
+## Usage
+
+### Basic Example
+
+```yaml
+name: Alert on Workflow Failure
+on:
+  workflow_run:
+    workflows: ['Production Deploy']
+    types: [completed]
+
+jobs:
+  alert:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    steps:
+      - name: Send Alert to incident.io
+        uses: lowlydba/incident-io-action@v1
+        with:
+          incident-io-token: ${{ secrets.INCIDENT_IO_TOKEN }}
+          alert-source-config-id: ${{ secrets.INCIDENT_IO_ALERT_SOURCE_ID }}
+          title: 'Production Deploy Failed'
+          status: 'firing'
+          description: |
+            Production deployment workflow has failed.
+            Please investigate immediately.
+```
+
+### Advanced Example with Custom Metadata
+
+```yaml
+- name: Send Alert with Custom Metadata
+  uses: lowlydba/incident-io-action@v1
+  with:
+    incident-io-token: ${{ secrets.INCIDENT_IO_TOKEN }}
+    alert-source-config-id: ${{ secrets.INCIDENT_IO_ALERT_SOURCE_ID }}
+    title: 'High Error Rate Detected'
+    status: 'firing'
+    description: 'Error rate exceeded threshold in production'
+    metadata: |
+      {
+        "service": "api",
+        "environment": "production",
+        "error_rate": "5.2%",
+        "threshold": "1.0%"
+      }
+```
+
+### Resolve Alert Example
+
+```yaml
+- name: Resolve Alert
+  uses: lowlydba/incident-io-action@v1
+  with:
+    incident-io-token: ${{ secrets.INCIDENT_IO_TOKEN }}
+    alert-source-config-id: ${{ secrets.INCIDENT_IO_ALERT_SOURCE_ID }}
+    title: 'Issue Resolved'
+    status: 'resolved'
+    deduplication-key: 'same-key-as-firing-alert'
+```
+
+## Inputs
+
+| Input                    | Description                                                                                  | Required | Default                      |
+| ------------------------ | -------------------------------------------------------------------------------------------- | -------- | ---------------------------- |
+| `incident-io-token`      | incident.io API token for authentication                                                     | Yes      | -                            |
+| `alert-source-config-id` | The alert source config ID from incident.io                                                  | No       | `01GW2G3V0S59R238FAHPDS1R66` |
+| `title`                  | Title of the alert                                                                           | Yes      | -                            |
+| `status`                 | Status of the alert (`firing` or `resolved`)                                                 | Yes      | `firing`                     |
+| `description`            | Description with additional details (supports Markdown)                                      | No       | -                            |
+| `deduplication-key`      | Unique deduplication key for this alert. Defaults to GitHub workflow run ID if not provided  | No       | Run ID                       |
+| `source-url`             | Link to the alert source. Defaults to GitHub workflow run URL if not provided                | No       | Run URL                      |
+| `metadata`               | Additional metadata as JSON string (e.g., `{"service": "api", "environment": "production"}`) | No       | `{}`                         |
+
+## Outputs
+
+| Output              | Description                              |
+| ------------------- | ---------------------------------------- |
+| `deduplication-key` | The deduplication key used for the alert |
+| `response-status`   | The response status from incident.io API |
+
+## GitHub Context Metadata
+
+The action automatically includes the following GitHub workflow context in the
+alert metadata under the `github` key:
+
+- `workflow` - Name of the workflow
+- `workflow_id` - Unique ID of the workflow run
+- `workflow_run_number` - Run number of the workflow
+- `workflow_attempt` - Attempt number if re-run
+- `job` - Name of the job
+- `actor` - User who triggered the workflow
+- `repository` - Repository name (owner/repository)
+- `ref` - Git reference (branch/tag)
+- `sha` - Commit SHA
+- `event_name` - Event that triggered the workflow
+
+This context is merged with any custom metadata you provide via the `metadata`
+input.
+
+## Development
+
+### Initial Setup
 
 After you've cloned the repository to your local machine or codespace, you'll
 need to perform some initial setup steps before you can develop your action.
@@ -62,62 +170,11 @@ need to perform some initial setup steps before you can develop your action.
 1. :white_check_mark: Run the tests
 
    ```bash
-   $ npm test
-
-   PASS  ./index.test.js
-     ✓ throws invalid number (3ms)
-     ✓ wait 500 ms (504ms)
-     ✓ test runs (95ms)
-
-   ...
+   npm test
    ```
 
-## Update the Action Metadata
+### Making Changes
 
-The [`action.yml`](action.yml) file defines metadata about your action, such as
-input(s) and output(s). For details about this file, see
-[Metadata syntax for GitHub Actions](https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions).
-
-When you copy this repository, update `action.yml` with the name, description,
-inputs, and outputs for your action.
-
-## Update the Action Code
-
-The [`src/`](./src/) directory is the heart of your action! This contains the
-source code that will be run when your action is invoked. You can replace the
-contents of this directory with your own code.
-
-There are a few things to keep in mind when writing your action code:
-
-- Most GitHub Actions toolkit and CI/CD operations are processed asynchronously.
-  In `main.ts`, you will see that the action is run in an `async` function.
-
-  ```javascript
-  import * as core from '@actions/core'
-  //...
-
-  async function run() {
-    try {
-      //...
-    } catch (error) {
-      core.setFailed(error.message)
-    }
-  }
-  ```
-
-  For more information about the GitHub Actions toolkit, see the
-  [documentation](https://github.com/actions/toolkit/blob/main/README.md).
-
-So, what are you waiting for? Go ahead and start customizing your action!
-
-1. Create a new branch
-
-   ```bash
-   git checkout -b releases/v1
-   ```
-
-1. Replace the contents of `src/` with your action code
-1. Add tests to `__tests__/` for your source code
 1. Format, test, and build the action
 
    ```bash
@@ -137,169 +194,69 @@ So, what are you waiting for? Go ahead and start customizing your action!
    your TypeScript action locally without having to commit and push your changes
    to a repository.
 
-   The `local-action` utility can be run in the following ways:
-   - Visual Studio Code Debugger
+   Make sure to review and update [`.env.example`](./.env.example) with the
+   required inputs for this action.
 
-     Make sure to review and, if needed, update
-     [`.vscode/launch.json`](./.vscode/launch.json)
+### CI/CD Testing
 
-   - Terminal/Command Prompt
+The CI workflow includes end-to-end testing with a real incident.io instance. To
+enable this in your fork, you'll need to add the following repository secret:
 
-     ```bash
-     # npx @github/local action <action-yaml-path> <entrypoint> <dotenv-file>
-     npx @github/local-action . src/main.ts .env
-     ```
+- `INCIDENT_IO_TOKEN` - Your incident.io API token
 
-   You can provide a `.env` file to the `local-action` CLI to set environment
-   variables used by the GitHub Actions Toolkit. For example, setting inputs and
-   event payload data used by your action. For more information, see the example
-   file, [`.env.example`](./.env.example), and the
-   [GitHub Actions Documentation](https://docs.github.com/en/actions/learn-github-actions/variables#default-environment-variables).
+The end-to-end tests use the default alert source config ID
+(`01GW2G3V0S59R238FAHPDS1R66`). If you want to use a different alert source, you
+can optionally add:
 
-1. Commit your changes
+- `INCIDENT_IO_ALERT_SOURCE_ID` - Your custom alert source config ID
 
-   ```bash
-   git add .
-   git commit -m "My first action is ready!"
-   ```
+The end-to-end tests will:
 
-1. Push them to your repository
+1. Send a "firing" alert to incident.io
+1. Verify the alert was created successfully
+1. Wait briefly
+1. Send a "resolved" alert with the same deduplication key
+1. Verify the resolution was successful
 
-   ```bash
-   git push -u origin releases/v1
-   ```
+> **Note**: E2E tests only run on pushes to the main repository or PRs from
+> branches within the same repository (not forks) to protect secrets.
 
-1. Create a pull request and get feedback on your action
-1. Merge the pull request into the `main` branch
-
-Your action is now published! :rocket:
-
-For information about versioning your action, see
-[Versioning](https://github.com/actions/toolkit/blob/main/docs/action-versioning.md)
-in the GitHub Actions toolkit.
-
-## Validate the Action
-
-You can now validate the action by referencing it in a workflow file. For
-example, [`ci.yml`](./.github/workflows/ci.yml) demonstrates how to reference an
-action in the same repository.
-
-```yaml
-steps:
-  - name: Checkout
-    id: checkout
-    uses: actions/checkout@v4
-
-  - name: Test Local Action
-    id: test-action
-    uses: ./
-    with:
-      milliseconds: 1000
-
-  - name: Print Output
-    id: output
-    run: echo "${{ steps.test-action.outputs.time }}"
-```
-
-For example workflow runs, check out the
-[Actions tab](https://github.com/actions/typescript-action/actions)! :rocket:
-
-## Usage
+## Versioning
 
 After testing, you can create version tag(s) that developers can use to
 reference different stable versions of your action. For more information, see
 [Versioning](https://github.com/actions/toolkit/blob/main/docs/action-versioning.md)
 in the GitHub Actions toolkit.
 
-To include the action in a workflow in another repository, you can use the
-`uses` syntax with the `@` symbol to reference a specific branch, tag, or commit
-hash.
+## Disclaimer
 
-```yaml
-steps:
-  - name: Checkout
-    id: checkout
-    uses: actions/checkout@v4
+This is an unofficial, community-created GitHub Action and is not affiliated
+with, endorsed by, or supported by incident.io Ltd. The incident.io name, logo,
+and related trademarks are property of incident.io Ltd.
 
-  - name: Test Local Action
-    id: test-action
-    uses: actions/typescript-action@v1 # Commit with the `v1` tag
-    with:
-      milliseconds: 1000
+This action uses the publicly available incident.io API as documented at
+[api-docs.incident.io](https://api-docs.incident.io). Users of this action are
+responsible for complying with incident.io's Terms of Service and API usage
+policies.
 
-  - name: Print Output
-    id: output
-    run: echo "${{ steps.test-action.outputs.time }}"
-```
+The maintainers of this action are not responsible for any issues, damages, or
+service disruptions that may result from using this action. Use at your own
+risk.
 
-## Publishing a New Release
+## License
 
-This project includes a helper script, [`script/release`](./script/release)
-designed to streamline the process of tagging and pushing new releases for
-GitHub Actions.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
+for details.
 
-GitHub Actions allows users to select a specific version of the action to use,
-based on release tags. This script simplifies this process by performing the
-following steps:
+## Contributing
 
-1. **Retrieving the latest release tag:** The script starts by fetching the most
-   recent SemVer release tag of the current branch, by looking at the local data
-   available in your repository.
-1. **Prompting for a new release tag:** The user is then prompted to enter a new
-   release tag. To assist with this, the script displays the tag retrieved in
-   the previous step, and validates the format of the inputted tag (vX.X.X). The
-   user is also reminded to update the version field in package.json.
-1. **Tagging the new release:** The script then tags a new release and syncs the
-   separate major tag (e.g. v1, v2) with the new release tag (e.g. v1.0.0,
-   v2.1.2). When the user is creating a new major release, the script
-   auto-detects this and creates a `releases/v#` branch for the previous major
-   version.
-1. **Pushing changes to remote:** Finally, the script pushes the necessary
-   commits, tags and branches to the remote repository. From here, you will need
-   to create a new release in GitHub so users can easily reference the new tags
-   in their workflows.
+Contributions are welcome! Please feel free to submit a Pull Request. Make sure
+to:
 
-## Dependency License Management
+1. Follow the existing code style
+1. Add tests for new functionality
+1. Update documentation as needed
+1. Run `npm run all` before submitting
 
-This template includes a GitHub Actions workflow,
-[`licensed.yml`](./.github/workflows/licensed.yml), that uses
-[Licensed](https://github.com/licensee/licensed) to check for dependencies with
-missing or non-compliant licenses. This workflow is initially disabled. To
-enable the workflow, follow the below steps.
-
-1. Open [`licensed.yml`](./.github/workflows/licensed.yml)
-1. Uncomment the following lines:
-
-   ```yaml
-   # pull_request:
-   #   branches:
-   #     - main
-   # push:
-   #   branches:
-   #     - main
-   ```
-
-1. Save and commit the changes
-
-Once complete, this workflow will run any time a pull request is created or
-changes pushed directly to `main`. If the workflow detects any dependencies with
-missing or non-compliant licenses, it will fail the workflow and provide details
-on the issue(s) found.
-
-### Updating Licenses
-
-Whenever you install or update dependencies, you can use the Licensed CLI to
-update the licenses database. To install Licensed, see the project's
-[Readme](https://github.com/licensee/licensed?tab=readme-ov-file#installation).
-
-To update the cached licenses, run the following command:
-
-```bash
-licensed cache
-```
-
-To check the status of cached licenses, run the following command:
-
-```bash
-licensed status
-```
+For more details, see the
+[Copilot Instructions](.github/copilot-instructions.md).
