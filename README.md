@@ -199,10 +199,15 @@ need to perform some initial setup steps before you can develop your action.
 ### CI/CD Testing
 
 The CI workflow includes end-to-end testing with a real incident.io instance. To
-enable this in your fork, you'll need to add the following repository secrets:
+enable this in your fork, you'll need to add the following repository secret:
 
 - `INCIDENT_IO_TOKEN` - Your incident.io API token
-- `INCIDENT_IO_ALERT_SOURCE_ID` - Your alert source config ID
+
+The E2E tests use the default alert source config ID
+(`01GW2G3V0S59R238FAHPDS1R66`). If you want to use a different alert source, you
+can optionally add:
+
+- `INCIDENT_IO_ALERT_SOURCE_ID` - Your custom alert source config ID
 
 The E2E tests will:
 
