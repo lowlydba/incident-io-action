@@ -13,23 +13,23 @@ it is generated from.
 
 | Path                   | Description                                              |
 | ---------------------- | -------------------------------------------------------- |
-| `__fixtures__/`                     | Unit Test Fixtures                                       |
-| `__tests__/`                        | Unit Tests                                               |
-| `.devcontainer/`                    | Development Container Configuration                      |
-| `.github/`                          | GitHub Configuration                                     |
-| `.github/CODEOWNERS`                | Code Owners File                                         |
-| `.github/linters/`                  | Linter Configuration Files                               |
-| `.licenses/`                        | License Information                                      |
-| `.vscode/`                          | Visual Studio Code Configuration                         |
-| `badges/`                           | Badges for readme                                        |
-| `dist/`                             | Generated JavaScript Code                                |
-| `src/`                              | TypeScript Source Code                                   |
-| `.env.example`                      | Environment Variables Example for `@github/local-action` |
-| `.licensed.yml`                     | Licensed Configuration                                   |
-| `.node-version`                     | Node.js Version Configuration                            |
-| `.prettierrc.yml`                   | Prettier Formatter Configuration                         |
-| `action.yml`                        | GitHub Action Metadata                                   |
-| `eslint.config.mjs`                 | ESLint Configuration                                     |
+| `__fixtures__/`        | Unit Test Fixtures                                       |
+| `__tests__/`           | Unit Tests                                               |
+| `.devcontainer/`       | Development Container Configuration                      |
+| `.github/`             | GitHub Configuration                                     |
+| `.github/CODEOWNERS`   | Code Owners File                                         |
+| `.github/linters/`     | Linter Configuration Files                               |
+| `.licenses/`           | License Information                                      |
+| `.vscode/`             | Visual Studio Code Configuration                         |
+| `badges/`              | Badges for readme                                        |
+| `dist/`                | Generated JavaScript Code                                |
+| `src/`                 | TypeScript Source Code                                   |
+| `.env.example`         | Environment Variables Example for `@github/local-action` |
+| `.licensed.yml`        | Licensed Configuration                                   |
+| `.node-version`        | Node.js Version Configuration                            |
+| `.prettierrc.yml`      | Prettier Formatter Configuration                         |
+| `action.yml`           | GitHub Action Metadata                                   |
+| `eslint.config.mjs`    | ESLint Configuration                                     |
 | `jest.config.js`       | Jest Configuration                                       |
 | `LICENSE`              | License File                                             |
 | `package.json`         | NPM Package Configuration                                |
