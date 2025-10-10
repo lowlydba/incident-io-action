@@ -9,7 +9,7 @@
 > [!NOTE]
 > This is an unofficial, community-created GitHub Action and is not
 > affiliated with, endorsed by, or supported by incident.io. incident.io and its
-> associated trademarks are property of incident.io Ltd.
+> associated trademarks are property of Pineapple Technology Ltd.
 
 A GitHub Action to send alerts to incident.io using their Alert Events V2 API.
 This action automatically includes GitHub workflow context in the alert
@@ -226,8 +226,8 @@ in the GitHub Actions toolkit.
 ## Disclaimer
 
 This is an unofficial, community-created GitHub Action and is not affiliated
-with, endorsed by, or supported by incident.io Ltd. The incident.io name, logo,
-and related trademarks are property of incident.io Ltd.
+with, endorsed by, or supported by Pineapple Technology Ltd. The incident.io name, logo,
+and related trademarks are property of Pineapple Technology Ltd.
 
 This action uses the publicly available incident.io API as documented at
 [api-docs.incident.io](https://api-docs.incident.io). Users of this action are
