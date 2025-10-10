@@ -6,6 +6,10 @@
 [![CodeQL](https://github.com/lowlydba/incident-io-action/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/lowlydba/incident-io-action/actions/workflows/codeql-analysis.yml)
 [![Coverage](./badges/coverage.svg)](./badges/coverage.svg)
 
+> [!NOTE] This is an unofficial, community-created GitHub Action and is not
+> affiliated with, endorsed by, or supported by incident.io. incident.io and its
+> associated trademarks are property of incident.io Ltd.
+
 A GitHub Action to send alerts to incident.io using their Alert Events V2 API.
 This action automatically includes GitHub workflow context in the alert
 metadata, making it easy to track which workflows triggered alerts.
@@ -193,6 +197,21 @@ After testing, you can create version tag(s) that developers can use to
 reference different stable versions of your action. For more information, see
 [Versioning](https://github.com/actions/toolkit/blob/main/docs/action-versioning.md)
 in the GitHub Actions toolkit.
+
+## Disclaimer
+
+This is an unofficial, community-created GitHub Action and is not affiliated
+with, endorsed by, or supported by incident.io Ltd. The incident.io name, logo,
+and related trademarks are property of incident.io Ltd.
+
+This action uses the publicly available incident.io API as documented at
+[api-docs.incident.io](https://api-docs.incident.io). Users of this action are
+responsible for complying with incident.io's Terms of Service and API usage
+policies.
+
+The maintainers of this action are not responsible for any issues, damages, or
+service disruptions that may result from using this action. Use at your own
+risk.
 
 ## License
 
