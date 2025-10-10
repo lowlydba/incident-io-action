@@ -28,56 +28,78 @@ Use the following as an example of how to structure your unit tests:
  */
 import { jest } from '@jest/globals'
 import * as core from '../__fixtures__/core.js'
-import { wait } from '../__fixtures__/wait.js'
+
+// Mock fetch
+const mockFetch = jest.fn<typeof fetch>()
+global.fetch = mockFetch
 
 // Mocks should be declared before the module being tested is imported.
 jest.unstable_mockModule('@actions/core', () => core)
-jest.unstable_mockModule('../src/wait.js', () => ({ wait }))
 
 // The module being tested should be imported dynamically. This ensures that the
 // mocks are used in place of any actual dependencies.
 const { run } = await import('../src/main.js')
 
 describe('main.ts', () => {
+  const defaultInputs: Record<string, string> = {
+    'incident-io-token': 'test-token',
+    'alert-source-config-id': 'test-config-id',
+    title: 'Test Alert',
+    status: 'firing',
+    metadata: '{}'
+  }
+
   beforeEach(() => {
     // Set the action's inputs as return values from core.getInput().
-    core.getInput.mockImplementation(() => '500')
+    core.getInput.mockImplementation(
+      (name: string) => defaultInputs[name] || ''
+    )
 
-    // Mock the wait function so that it does not actually wait.
-    wait.mockImplementation(() => Promise.resolve('done!'))
+    // Mock successful API response
+    mockFetch.mockResolvedValue({
+      ok: true,
+      status: 202,
+      json: async () => ({
+        deduplication_key: 'test-key',
+        message: 'Event accepted for processing',
+        status: 'success'
+      })
+    } as Response)
   })
 
   afterEach(() => {
     jest.resetAllMocks()
+    mockFetch.mockClear()
   })
 
-  it('Sets the time output', async () => {
+  it('Sends alert successfully', async () => {
     await run()
 
-    // Verify the time output was set.
-    expect(core.setOutput).toHaveBeenNthCalledWith(
-      1,
-      'time',
-      // Simple regex to match a time string in the format HH:MM:SS.
-      expect.stringMatching(/^\d{2}:\d{2}:\d{2}/)
+    // Verify fetch was called with correct parameters
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('https://api.incident.io/v2/alert_events/http/'),
+      expect.objectContaining({
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
     )
+
+    // Verify outputs were set
+    expect(core.setOutput).toHaveBeenCalledWith('deduplication-key', 'test-key')
   })
 
-  it('Sets a failed status', async () => {
-    // Clear the getInput mock and return an invalid value.
-    core.getInput.mockClear().mockReturnValueOnce('this is not a number')
-
-    // Clear the wait mock and return a rejected promise.
-    wait
-      .mockClear()
-      .mockRejectedValueOnce(new Error('milliseconds is not a number'))
+  it('Handles API error responses', async () => {
+    mockFetch.mockResolvedValue({
+      ok: false,
+      status: 400,
+      text: async () => 'Bad Request'
+    } as Response)
 
     await run()
 
-    // Verify that the action was marked as failed.
-    expect(core.setFailed).toHaveBeenNthCalledWith(
-      1,
-      'milliseconds is not a number'
+    // Verify that the action was marked as failed
+    expect(core.setFailed).toHaveBeenCalledWith(
+      expect.stringContaining('incident.io API request failed')
     )
   })
 })

@@ -45,20 +45,79 @@ jobs:
         run: npm run ci-test
 
   test-action:
-    name: GitHub Actions Test
+    name: End-to-End Test
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' ||
+      github.event.pull_request.head.repo.full_name == github.repository
 
     steps:
       - name: Checkout
         id: checkout
         uses: actions/checkout@v5
 
-      - name: Test Local Action
-        id: test-action
+      - name: Send Firing Alert
+        id: test-firing
         uses: ./
         with:
-          milliseconds: 2000
+          incident-io-token: ${{ secrets.INCIDENT_IO_TOKEN }}
+          alert-source-config-id: '01K77NXDEHQPQAN0Y0A1600D1N'
+          title: 'CI Test Alert - Firing'
+          status: 'firing'
+          description: |
+            ## CI End-to-End Test Alert
 
-      - name: Print Output
-        id: output
-        run: echo "${{ steps.test-action.outputs.time }}"
+            This is an automated test alert from the CI workflow.
+
+            **Workflow Run:** ${{ github.run_id }}
+            **Event:** ${{ github.event_name }}
+            **Branch:** ${{ github.ref_name }}
+            **Commit:** ${{ github.sha }}
+          metadata: |
+            {
+              "test": true,
+              "ci": true,
+              "workflow_run_id": "${{ github.run_id }}"
+            }
+
+      - name: Verify Firing Alert Success
+        run: |
+          echo "✅ Firing alert sent successfully!"
+          echo "Deduplication Key: ${{ steps.test-firing.outputs.deduplication-key }}"
+          echo "Response Status: ${{ steps.test-firing.outputs.response-status }}"
+
+      - name: Wait Before Resolving
+        run: sleep 5
+
+      - name: Send Resolved Alert
+        id: test-resolved
+        uses: ./
+        with:
+          incident-io-token: ${{ secrets.INCIDENT_IO_TOKEN }}
+          alert-source-config-id: '01K77NXDEHQPQAN0Y0A1600D1N'
+          title: 'CI Test Alert - Resolved'
+          status: 'resolved'
+          description: 'CI test alert has been resolved.'
+          deduplication-key: ${{ steps.test-firing.outputs.deduplication-key }}
+
+      - name: Verify Resolved Alert Success
+        run: |
+          echo "✅ Resolved alert sent successfully!"
+          echo "Deduplication Key: ${{ steps.test-resolved.outputs.deduplication-key }}"
+          echo "Response Status: ${{ steps.test-resolved.outputs.response-status }}"
+
+  test-action-without-secrets:
+    name: Test Without Secrets (Dry Run)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name != github.repository
+
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v5
+
+      - name: Notice About Skipped E2E Tests
+        run: |
+          echo "ℹ️ End-to-end tests are skipped for PRs from forks"
+          echo "The action will be tested with unit tests only"
+          echo "E2E tests will run when changes are pushed to the main repository"

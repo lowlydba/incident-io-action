@@ -1,0 +1,54 @@
+# Example workflow showing how to use the incident.io action
+# Rename this file to .yml to activate it
+
+name: Alert on Deployment Failure
+
+on:
+  workflow_run:
+    workflows: ["Deploy to Production"]
+    types: [completed]
+
+jobs:
+  alert-on-failure:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+
+    steps:
+      - name: Send Alert to incident.io
+        uses: lowlydba/incident-io-action@v1
+        with:
+          incident-io-token: ${{ secrets.INCIDENT_IO_TOKEN }}
+          alert-source-config-id: ${{ secrets.INCIDENT_IO_ALERT_SOURCE_ID }}
+          title: 'Production Deployment Failed'
+          status: 'firing'
+          description: |
+            ## Deployment Failure Alert
+
+            The production deployment workflow has failed.
+
+            **Workflow:** ${{ github.event.workflow_run.name }}
+            **Triggered by:** ${{ github.event.workflow_run.triggering_actor.login }}
+            **Branch:** ${{ github.event.workflow_run.head_branch }}
+
+            Please investigate immediately.
+          metadata: |
+            {
+              "severity": "critical",
+              "service": "production-deploy",
+              "environment": "production"
+            }
+
+  alert-on-success:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Resolve Alert in incident.io
+        uses: lowlydba/incident-io-action@v1
+        with:
+          incident-io-token: ${{ secrets.INCIDENT_IO_TOKEN }}
+          alert-source-config-id: ${{ secrets.INCIDENT_IO_ALERT_SOURCE_ID }}
+          title: 'Production Deployment Succeeded'
+          status: 'resolved'
+          description: 'Production deployment completed successfully.'
+          deduplication-key: 'production-deploy-alert'
