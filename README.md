@@ -29,13 +29,8 @@ metadata, making it easy to track which workflows triggered alerts.
 Before using this action, you need to:
 
 1. Have an [incident.io](https://incident.io) account
-1. Create an HTTP alert source in incident.io
-1. Obtain your alert source config ID and token
-
-> **Note**: The action uses a default alert source config ID
-> (`01GW2G3V0S59R238FAHPDS1R66`) if you don't specify one. This is the default
-> ID shown in incident.io's API documentation. You can override this by
-> providing your own `alert-source-config-id` input.
+2. [Create an HTTP alert source][create-http] in incident.io
+3. Obtain your alert source config ID and token from the newly created alert source
 
 ## Usage
 
@@ -147,7 +142,7 @@ need to perform some initial setup steps before you can develop your action.
 > [!NOTE]
 >
 > You'll need to have a reasonably modern version of
-> [Node.js](https://nodejs.org) handy (20.x or later should work!). If you are
+> [Node.js](https://nodejs.org) handy (24.x or later should work!). If you are
 > using a version manager like [`nodenv`](https://github.com/nodenv/nodenv) or
 > [`fnm`](https://github.com/Schniz/fnm), this template has a `.node-version`
 > file at the root of the repository that can be used to automatically switch to
@@ -260,3 +255,5 @@ to:
 
 For more details, see the
 [Copilot Instructions](.github/copilot-instructions.md).
+
+[create-http]: https://help.incident.io/articles/2353344082-custom-http-alert-sources
