@@ -1,22 +1,19 @@
 name: incident.io Alert Action
 description: >-
   Unofficial community action to send alerts to incident.io from GitHub Actions
-  workflows. Not affiliated with or endorsed by incident.io Ltd.
+  workflows.
 author: lowlydba
-# Add your action's branding here. This will appear on the GitHub Marketplace.
 branding:
   icon: alert-circle
   color: red
 
-# Define your inputs here.
 inputs:
   incident-io-token:
     description: 'incident.io API token for authentication'
     required: true
   alert-source-config-id:
     description: 'The alert source config ID from incident.io'
-    required: false
-    default: '01GW2G3V0S59R238FAHPDS1R66'
+    required: true
   title:
     description: 'Title of the alert'
     required: true
@@ -41,7 +38,6 @@ inputs:
     required: false
     default: '{}'
 
-# Define your outputs here.
 outputs:
   deduplication-key:
     description: 'The deduplication key used for the alert'

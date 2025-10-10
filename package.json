@@ -1,7 +1,7 @@
 {
   "name": "incident-io-action",
-  "description": "Unofficial GitHub Action to send alerts to incident.io (not affiliated with incident.io Ltd)",
-  "version": "1.0.0",
+  "description": "Unofficial GitHub Action to send alerts to incident.io",
+  "version": "0.0.0",
   "author": "lowlydba",
   "type": "module",
   "private": true,
