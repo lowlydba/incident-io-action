@@ -29,8 +29,8 @@ metadata, making it easy to track which workflows triggered alerts.
 Before using this action, you need to:
 
 1. Have an [incident.io](https://incident.io) account
-2. [Create an HTTP alert source][create-http] in incident.io
-3. Obtain your alert source config ID and token from the newly created alert source
+1. [Create an HTTP alert source][create-http] in incident.io
+1. Obtain your alert source config ID and token from the newly created alert source
 
 ## Usage
 
