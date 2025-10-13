@@ -205,7 +205,7 @@ Complete technical reference for the action.
 | `title`                  | Title of the alert                                                                          | ✅       | -       |
 | `status`                 | Status of the alert (`firing` or `resolved`)                                                | ✅       | `firing`|
 | `description`            | Description with additional details (supports Markdown)                                     | ❌       | -       |
-| `deduplication-key`      | Unique deduplication key for this alert. Defaults to GitHub workflow run ID if not provided | ❌       | Run ID  |
+| `deduplication-key`      | Unique deduplication key for this alert. Defaults to GitHub workflow run ID if not provided | ❌       | [Run ID][run-id] |
 | `source-url`             | Link to the alert source. Defaults to GitHub workflow run URL if not provided               | ❌       | Run URL |
 | `metadata`               | Additional metadata as JSON string                                                          | ❌       | `{}`    |
 
@@ -358,3 +358,4 @@ service disruptions that may result from using this action. Use at your own
 risk.
 
 [create-http]: https://help.incident.io/articles/2353344082-custom-http-alert-sources
+[run-id]: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#github-context
