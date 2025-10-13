@@ -18,14 +18,14 @@ management.
 
 ## Table of Contents
 
-- [Tutorial: Getting Started](#tutorial-getting-started)
-- [How-To Guides](#how-to-guides)
-- [Reference](#reference)
-- [Explanation](#explanation)
+- [📚 Tutorial: Getting Started](#-tutorial-getting-started)
+- [🔧 How-To Guides](#-how-to-guides)
+- [📖 Reference](#-reference)
+- [💡 Explanation](#-explanation)
 
 ---
 
-## Tutorial: Getting Started
+## 📚 Tutorial: Getting Started
 
 Learn how to send your first alert to incident.io from a GitHub Actions
 workflow.
@@ -40,7 +40,7 @@ workflow.
 
 1. Log in to your incident.io dashboard
 1. Navigate to Settings → Alert Sources
-1. Click Create Alert Source and select HTTP
+1. Click [Create Alert Source][create-http] and select HTTP
 1. Give it a name (e.g., "GitHub Actions")
 1. Save and note the Alert Source Config ID and Token
 
@@ -87,12 +87,12 @@ jobs:
 1. Watch the workflow run in the Actions tab
 1. Check your incident.io dashboard for the alert
 
-Congratulations! You've sent your first alert from GitHub Actions to
+🎉 Congratulations! You've sent your first alert from GitHub Actions to
 incident.io.
 
 ---
 
-## How-To Guides
+## 🔧 How-To Guides
 
 Practical guides for common tasks.
 
@@ -192,22 +192,22 @@ Control alert grouping with custom deduplication keys:
 
 ---
 
-## Reference
+## 📖 Reference
 
 Complete technical reference for the action.
 
 ### Inputs
 
-| Input                    | Description                                                                                 | Required | Default  |
-| ------------------------ | ------------------------------------------------------------------------------------------- | -------- | -------- |
-| `incident-io-token`      | incident.io API token for authentication                                                    | Yes      | -        |
-| `alert-source-config-id` | The alert source config ID from incident.io                                                 | Yes      | -        |
-| `title`                  | Title of the alert                                                                          | Yes      | -        |
-| `status`                 | Status of the alert (`firing` or `resolved`)                                                | Yes      | `firing` |
-| `description`            | Description with additional details (supports Markdown)                                     | No       | -        |
-| `deduplication-key`      | Unique deduplication key for this alert. Defaults to GitHub workflow run ID if not provided | No       | Run ID   |
-| `source-url`             | Link to the alert source. Defaults to GitHub workflow run URL if not provided               | No       | Run URL  |
-| `metadata`               | Additional metadata as JSON string                                                          | No       | `{}`     |
+| Input                    | Description                                                                                 | Required | Default |
+| ------------------------ | ------------------------------------------------------------------------------------------- | -------- | ------- |
+| `incident-io-token`      | incident.io API token for authentication                                                    | ✅       | -       |
+| `alert-source-config-id` | The alert source config ID from incident.io                                                 | ✅       | -       |
+| `title`                  | Title of the alert                                                                          | ✅       | -       |
+| `status`                 | Status of the alert (`firing` or `resolved`)                                                | ✅       | `firing`|
+| `description`            | Description with additional details (supports Markdown)                                     | ❌       | -       |
+| `deduplication-key`      | Unique deduplication key for this alert. Defaults to GitHub workflow run ID if not provided | ❌       | Run ID  |
+| `source-url`             | Link to the alert source. Defaults to GitHub workflow run URL if not provided               | ❌       | Run URL |
+| `metadata`               | Additional metadata as JSON string                                                          | ❌       | `{}`    |
 
 ### Outputs
 
@@ -238,7 +238,7 @@ This context is automatically merged with any custom `metadata` you provide.
 
 ---
 
-## Explanation
+## 💡 Explanation
 
 ### Why Use This Action?
 
@@ -250,10 +250,10 @@ context, tracking, and collaboration.
 Solution: This action bridges GitHub Actions and incident.io, automatically
 creating alerts enriched with workflow context, enabling teams to:
 
-- Centralize incident tracking and alert notifications across multiple systems
-- Leverage incident.io's escalation and on-call features
-- Maintain a single source of truth for incidents
-- Correlate CI/CD failures with other system alerts
+- 🎯 Centralize incident tracking and alert notifications across multiple systems
+- 📢 Leverage incident.io's escalation and on-call features
+- 📋 Maintain a single source of truth for incidents
+- 🔗 Correlate CI/CD failures with other system alerts
 
 ### How Alert Deduplication Works
 
@@ -284,37 +284,37 @@ Alerts in incident.io follow a lifecycle:
 
 This action supports both statuses, allowing you to:
 
-- Create alerts when problems are detected (`status: firing`)
-- Automatically resolve them when fixed (`status: resolved`)
+- 🚨 Create alerts when problems are detected (`status: firing`)
+- ✅ Automatically resolve them when fixed (`status: resolved`)
 
 ### GitHub Context Enrichment
 
 The action automatically adds GitHub-specific metadata to every alert. This
 provides immediate context about:
 
-- What happened: Workflow name and job
-- Where it happened: Repository, branch, commit
-- Who triggered it: Actor who initiated the workflow
-- When it happened: Run number and attempt
+- 📊 What happened: Workflow name and job
+- 📍 Where it happened: Repository, branch, commit
+- 👤 Who triggered it: Actor who initiated the workflow
+- ⏰ When it happened: Run number and attempt
 
 This enrichment happens automatically and is merged with any custom metadata you
 provide, ensuring you never lose important context.
 
 ### Design Decisions
 
-Why require alert-source-config-id?
+> Why require alert-source-config-id?
 
 Each alert source in incident.io has unique routing, escalation, and grouping
 rules. Requiring this ID ensures alerts reach the correct team and follow the
 appropriate response procedures.
 
-Why default to workflow run ID for deduplication?
+> Why default to workflow run ID for deduplication?
 
 Most use cases involve alerting on individual workflow failures. Using the run
 ID as a default prevents alert noise while still allowing customization for
 advanced scenarios.
 
-Why automatically include GitHub context?
+> Why automatically include GitHub context?
 
 Manual context gathering is error-prone and tedious. Automatic enrichment
 ensures consistent, comprehensive information in every alert, improving response
