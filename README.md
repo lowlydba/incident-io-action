@@ -11,223 +11,342 @@
 > affiliated with, endorsed by, or supported by incident.io. incident.io and its
 > associated trademarks are property of Pineapple Technology Ltd.
 
-A GitHub Action to send alerts to incident.io using their Alert Events V2 API.
-This action automatically includes GitHub workflow context in the alert
-metadata, making it easy to track which workflows triggered alerts.
+Send alerts to incident.io from your GitHub Actions workflows using the Alert
+Events V2 API. This action automatically enriches alerts with GitHub workflow
+context, enabling seamless integration between your CI/CD pipeline and incident
+management.
 
-## Features
+## Table of Contents
 
-- 🚨 Send alerts to incident.io from your GitHub workflows
-- 🔄 Automatic deduplication using GitHub run IDs
-- 📊 Includes comprehensive GitHub workflow context in metadata
-- 🔗 Automatic linking back to workflow runs
-- ✅ Supports both "firing" and "resolved" alert statuses
-- 🎨 Customizable with additional metadata
+- [📚 Tutorial: Getting Started](#-tutorial-getting-started)
+- [🔧 How-To Guides](#-how-to-guides)
+- [📖 Reference](#-reference)
+- [💡 Explanation](#-explanation)
 
-## Prerequisites
+---
 
-Before using this action, you need to:
+## 📚 Tutorial: Getting Started
 
-1. Have an [incident.io](https://incident.io) account
-1. [Create an HTTP alert source][create-http] in incident.io
-1. Obtain your alert source config ID and token from the newly created alert source
+Learn how to send your first alert to incident.io from a GitHub Actions
+workflow.
 
-## Usage
+### What You'll Need
 
-### Basic Example
+1. An [incident.io](https://incident.io) account
+1. A GitHub repository with Actions enabled
+1. 10 minutes
+
+### Step 1: Create an HTTP Alert Source
+
+1. Log in to your incident.io dashboard
+1. Navigate to Settings → Alert Sources
+1. Click [Create Alert Source][create-http] and select HTTP
+1. Give it a name (e.g., "GitHub Actions")
+1. Save and note the Alert Source Config ID and Token
+
+### Step 2: Add Secrets to Your Repository
+
+1. Go to your GitHub repository
+1. Navigate to Settings → Secrets and variables → Actions
+1. Add two new repository secrets:
+   - `INCIDENT_IO_TOKEN`: Your alert source token
+   - `INCIDENT_IO_ALERT_SOURCE_ID`: Your alert source config ID
+
+### Step 3: Create Your First Workflow
+
+Create `.github/workflows/alert-on-failure.yml`:
 
 ```yaml
-name: Alert on Workflow Failure
+name: Alert on Failure
 on:
-  workflow_run:
-    workflows: ['Production Deploy']
-    types: [completed]
+  push:
+    branches: [main]
 
 jobs:
-  alert:
+  example-job:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
     steps:
-      - name: Send Alert to incident.io
+      - name: Simulate failure
+        run: exit 1
+        continue-on-error: true
+
+      - name: Send alert to incident.io
+        if: failure()
         uses: lowlydba/incident-io-action@v1
         with:
           incident-io-token: ${{ secrets.INCIDENT_IO_TOKEN }}
           alert-source-config-id: ${{ secrets.INCIDENT_IO_ALERT_SOURCE_ID }}
-          title: 'Production Deploy Failed'
+          title: 'Workflow Failed'
           status: 'firing'
-          description: |
-            Production deployment workflow has failed.
-            Please investigate immediately.
+          description: 'The main workflow has failed.'
 ```
 
-### Advanced Example with Custom Metadata
+### Step 4: Test It
+
+1. Commit and push the workflow file
+1. Watch the workflow run in the Actions tab
+1. Check your incident.io dashboard for the alert
+
+🎉 Congratulations! You've sent your first alert from GitHub Actions to
+incident.io.
+
+---
+
+## 🔧 How-To Guides
+
+Practical guides for common tasks.
+
+### How to Alert on Deployment Failures
+
+Monitor your deployment workflows and send alerts when they fail:
 
 ```yaml
-- name: Send Alert with Custom Metadata
+name: Production Deploy
+on:
+  workflow_run:
+    workflows: ['Deploy to Production']
+    types: [completed]
+
+jobs:
+  alert-on-failure:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    steps:
+      - name: Send deployment failure alert
+        uses: lowlydba/incident-io-action@v1
+        with:
+          incident-io-token: ${{ secrets.INCIDENT_IO_TOKEN }}
+          alert-source-config-id: ${{ secrets.INCIDENT_IO_ALERT_SOURCE_ID }}
+          title: 'Production Deployment Failed'
+          status: 'firing'
+          description: |
+            Deployment to production has failed.
+            Workflow: ${{ github.event.workflow_run.name }}
+            Commit: ${{ github.event.workflow_run.head_sha }}
+```
+
+### How to Add Custom Metadata
+
+Enrich alerts with additional context using the `metadata` field:
+
+```yaml
+- name: Send alert with custom data
   uses: lowlydba/incident-io-action@v1
   with:
     incident-io-token: ${{ secrets.INCIDENT_IO_TOKEN }}
     alert-source-config-id: ${{ secrets.INCIDENT_IO_ALERT_SOURCE_ID }}
     title: 'High Error Rate Detected'
     status: 'firing'
-    description: 'Error rate exceeded threshold in production'
+    description: 'Error rate exceeded threshold'
     metadata: |
       {
         "service": "api",
         "environment": "production",
         "error_rate": "5.2%",
-        "threshold": "1.0%"
+        "threshold": "1.0%",
+        "region": "us-east-1"
       }
 ```
 
-### Resolve Alert Example
+### How to Resolve Alerts Automatically
+
+Send a "resolved" alert when an issue is fixed:
 
 ```yaml
-- name: Resolve Alert
+- name: Send firing alert
+  id: alert
   uses: lowlydba/incident-io-action@v1
   with:
     incident-io-token: ${{ secrets.INCIDENT_IO_TOKEN }}
     alert-source-config-id: ${{ secrets.INCIDENT_IO_ALERT_SOURCE_ID }}
-    title: 'Issue Resolved'
+    title: 'Service Degradation'
+    status: 'firing'
+
+- name: Wait for recovery
+  run: sleep 60
+
+- name: Resolve alert
+  uses: lowlydba/incident-io-action@v1
+  with:
+    incident-io-token: ${{ secrets.INCIDENT_IO_TOKEN }}
+    alert-source-config-id: ${{ secrets.INCIDENT_IO_ALERT_SOURCE_ID }}
+    title: 'Service Recovered'
     status: 'resolved'
-    deduplication-key: 'same-key-as-firing-alert'
+    deduplication-key: ${{ steps.alert.outputs.deduplication-key }}
 ```
 
-## Inputs
+### How to Use Custom Deduplication Keys
 
-| Input                    | Description                                                                                  | Required | Default                      |
-| ------------------------ | -------------------------------------------------------------------------------------------- | -------- | ---------------------------- |
-| `incident-io-token`      | incident.io API token for authentication                                                     | Yes      | -                            |
-| `alert-source-config-id` | The alert source config ID from incident.io                                                  | No       | `01GW2G3V0S59R238FAHPDS1R66` |
-| `title`                  | Title of the alert                                                                           | Yes      | -                            |
-| `status`                 | Status of the alert (`firing` or `resolved`)                                                 | Yes      | `firing`                     |
-| `description`            | Description with additional details (supports Markdown)                                      | No       | -                            |
-| `deduplication-key`      | Unique deduplication key for this alert. Defaults to GitHub workflow run ID if not provided  | No       | Run ID                       |
-| `source-url`             | Link to the alert source. Defaults to GitHub workflow run URL if not provided                | No       | Run URL                      |
-| `metadata`               | Additional metadata as JSON string (e.g., `{"service": "api", "environment": "production"}`) | No       | `{}`                         |
+Control alert grouping with custom deduplication keys:
 
-## Outputs
+```yaml
+- name: Send alert with custom key
+  uses: lowlydba/incident-io-action@v1
+  with:
+    incident-io-token: ${{ secrets.INCIDENT_IO_TOKEN }}
+    alert-source-config-id: ${{ secrets.INCIDENT_IO_ALERT_SOURCE_ID }}
+    title: 'Database Migration Failed'
+    status: 'firing'
+    deduplication-key: 'db-migration-${{ github.run_id }}'
+```
+
+---
+
+## 📖 Reference
+
+Complete technical reference for the action.
+
+### Inputs
+
+| Input                    | Description                                                                                 | Required | Default          |
+| ------------------------ | ------------------------------------------------------------------------------------------- | -------- | ---------------- |
+| `incident-io-token`      | incident.io API token for authentication                                                    | ✅       | -                |
+| `alert-source-config-id` | The alert source config ID from incident.io                                                 | ✅       | -                |
+| `title`                  | Title of the alert                                                                          | ✅       | -                |
+| `status`                 | Status of the alert (`firing` or `resolved`)                                                | ✅       | `firing`         |
+| `description`            | Description with additional details (supports Markdown)                                     | ❌       | -                |
+| `deduplication-key`      | Unique deduplication key for this alert. Defaults to GitHub workflow run ID if not provided | ❌       | [Run ID][run-id] |
+| `source-url`             | Link to the alert source. Defaults to GitHub workflow run URL if not provided               | ❌       | Run URL          |
+| `metadata`               | Additional metadata as JSON string                                                          | ❌       | `{}`             |
+
+### Outputs
 
 | Output              | Description                              |
 | ------------------- | ---------------------------------------- |
 | `deduplication-key` | The deduplication key used for the alert |
 | `response-status`   | The response status from incident.io API |
 
-## GitHub Context Metadata
+### Automatic GitHub Context
 
-The action automatically includes the following GitHub workflow context in the
-alert metadata under the `github` key:
+The action automatically includes GitHub workflow context in alert metadata under
+the `github` key:
 
-- `workflow` - Name of the workflow
-- `workflow_id` - Unique ID of the workflow run
-- `workflow_run_number` - Run number of the workflow
-- `workflow_attempt` - Attempt number if re-run
-- `job` - Name of the job
-- `actor` - User who triggered the workflow
-- `repository` - Repository name (owner/repository)
-- `ref` - Git reference (branch/tag)
-- `sha` - Commit SHA
-- `event_name` - Event that triggered the workflow
+| Field                 | Description                        |
+| --------------------- | ---------------------------------- |
+| `workflow`            | Name of the workflow               |
+| `workflow_id`         | Unique ID of the workflow run      |
+| `workflow_run_number` | Run number of the workflow         |
+| `workflow_attempt`    | Attempt number if re-run           |
+| `job`                 | Name of the job                    |
+| `actor`               | User who triggered the workflow    |
+| `repository`          | Repository name (owner/repository) |
+| `ref`                 | Git reference (branch/tag)         |
+| `sha`                 | Commit SHA                         |
+| `event_name`          | Event that triggered the workflow  |
 
-This context is merged with any custom metadata you provide via the `metadata`
-input.
+This context is automatically merged with any custom `metadata` you provide.
 
-## Development
+---
 
-### Initial Setup
+## 💡 Explanation
 
-After you've cloned the repository to your local machine or codespace, you'll
-need to perform some initial setup steps before you can develop your action.
+### Why Use This Action?
 
-> [!NOTE]
->
-> You'll need to have a reasonably modern version of
-> [Node.js](https://nodejs.org) handy (24.x or later should work!). If you are
-> using a version manager like [`nodenv`](https://github.com/nodenv/nodenv) or
-> [`fnm`](https://github.com/Schniz/fnm), this template has a `.node-version`
-> file at the root of the repository that can be used to automatically switch to
-> the correct version when you `cd` into the repository. Additionally, this
-> `.node-version` file is used by GitHub Actions in any `actions/setup-node`
-> actions.
+Problem: When CI/CD pipelines fail, teams need immediate visibility into the
+failure to respond quickly. While GitHub provides notifications, integrating
+with a dedicated incident management platform like incident.io provides better
+context, tracking, and collaboration.
 
-1. :hammer_and_wrench: Install the dependencies
+Solution: This action bridges GitHub Actions and incident.io, automatically
+creating alerts enriched with workflow context, enabling teams to:
 
-   ```bash
-   npm install
-   ```
+- 🎯 Centralize incident tracking and alert notifications across multiple systems
+- 📢 Leverage incident.io's escalation and on-call features
+- 📋 Maintain a single source of truth for incidents
+- 🔗 Correlate CI/CD failures with other system alerts
 
-1. :building_construction: Package the TypeScript for distribution
+### How Alert Deduplication Works
 
-   ```bash
-   npm run bundle
-   ```
+The action uses deduplication keys to group related alerts together. By default,
+each workflow run gets a unique key based on the GitHub run ID, preventing
+duplicate alerts for the same run.
 
-1. :white_check_mark: Run the tests
+Default behavior: Each workflow run creates a new alert
 
-   ```bash
-   npm test
-   ```
+```text
+Workflow Run #123 → Alert with key "123"
+Workflow Run #124 → Alert with key "124"
+```
 
-### Making Changes
+Custom keys: Use the same key to update an existing alert
 
-1. Format, test, and build the action
+```text
+Firing alert → deduplication-key: "db-migration-prod"
+Resolved alert → deduplication-key: "db-migration-prod" (updates same alert)
+```
 
-   ```bash
-   npm run all
-   ```
+### Alert Status Lifecycle
 
-   > This step is important! It will run [`rollup`](https://rollupjs.org/) to
-   > build the final JavaScript action code with all dependencies included. If
-   > you do not run this step, your action will not work correctly when it is
-   > used in a workflow.
+Alerts in incident.io follow a lifecycle:
 
-1. (Optional) Test your action locally
+1. Firing: An active issue that needs attention
+1. Resolved: The issue has been fixed
 
-   The [`@github/local-action`](https://github.com/github/local-action) utility
-   can be used to test your action locally. It is a simple command-line tool
-   that "stubs" (or simulates) the GitHub Actions Toolkit. This way, you can run
-   your TypeScript action locally without having to commit and push your changes
-   to a repository.
+This action supports both statuses, allowing you to:
 
-   Make sure to review and update [`.env.example`](./.env.example) with the
-   required inputs for this action.
+- 🚨 Create alerts when problems are detected (`status: firing`)
+- ✅ Automatically resolve them when fixed (`status: resolved`)
 
-### CI/CD Testing
+### GitHub Context Enrichment
 
-The CI workflow includes end-to-end testing with a real incident.io instance. To
-enable this in your fork, you'll need to add the following repository secret:
+The action automatically adds GitHub-specific metadata to every alert. This
+provides immediate context about:
 
-- `INCIDENT_IO_TOKEN` - Your incident.io API token
+- 📊 What happened: Workflow name and job
+- 📍 Where it happened: Repository, branch, commit
+- 👤 Who triggered it: Actor who initiated the workflow
+- ⏰ When it happened: Run number and attempt
 
-The end-to-end tests use the default alert source config ID
-(`01GW2G3V0S59R238FAHPDS1R66`). If you want to use a different alert source, you
-can optionally add:
+This enrichment happens automatically and is merged with any custom metadata you
+provide, ensuring you never lose important context.
 
-- `INCIDENT_IO_ALERT_SOURCE_ID` - Your custom alert source config ID
+### Design Decisions
 
-The end-to-end tests will:
+> Why require alert-source-config-id?
 
-1. Send a "firing" alert to incident.io
-1. Verify the alert was created successfully
-1. Wait briefly
-1. Send a "resolved" alert with the same deduplication key
-1. Verify the resolution was successful
+Each alert source in incident.io has unique routing, escalation, and grouping
+rules. Requiring this ID ensures alerts reach the correct team and follow the
+appropriate response procedures.
 
-> **Note**: E2E tests only run on pushes to the main repository or PRs from
-> branches within the same repository (not forks) to protect secrets.
+> Why default to workflow run ID for deduplication?
 
-## Versioning
+Most use cases involve alerting on individual workflow failures. Using the run
+ID as a default prevents alert noise while still allowing customization for
+advanced scenarios.
 
-After testing, you can create version tag(s) that developers can use to
-reference different stable versions of your action. For more information, see
-[Versioning](https://github.com/actions/toolkit/blob/main/docs/action-versioning.md)
-in the GitHub Actions toolkit.
+> Why automatically include GitHub context?
 
-## Disclaimer
+Manual context gathering is error-prone and tedious. Automatic enrichment
+ensures consistent, comprehensive information in every alert, improving response
+times and debugging.
+
+---
+
+## Additional Information
+
+### Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request. Make sure
+to:
+
+1. Follow the existing code style
+1. Add tests for new functionality
+1. Update documentation as needed
+1. Run `npm run all` before submitting
+
+For development setup and guidelines, see the
+[Copilot Instructions](.github/copilot-instructions.md).
+
+### Project License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
+for details.
+
+### Legal Disclaimer
 
 This is an unofficial, community-created GitHub Action and is not affiliated
-with, endorsed by, or supported by Pineapple Technology Ltd. The incident.io name, logo,
-and related trademarks are property of Pineapple Technology Ltd.
+with, endorsed by, or supported by Pineapple Technology Ltd. The incident.io
+name, logo, and related trademarks are property of Pineapple Technology Ltd.
 
 This action uses the publicly available incident.io API as documented at
 [api-docs.incident.io](https://api-docs.incident.io). Users of this action are
@@ -238,22 +357,5 @@ The maintainers of this action are not responsible for any issues, damages, or
 service disruptions that may result from using this action. Use at your own
 risk.
 
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
-for details.
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request. Make sure
-to:
-
-1. Follow the existing code style
-1. Add tests for new functionality
-1. Update documentation as needed
-1. Run `npm run all` before submitting
-
-For more details, see the
-[Copilot Instructions](.github/copilot-instructions.md).
-
 [create-http]: https://help.incident.io/articles/2353344082-custom-http-alert-sources
+[run-id]: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#github-context
