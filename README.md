@@ -198,16 +198,16 @@ Complete technical reference for the action.
 
 ### Inputs
 
-| Input                    | Description                                                                                 | Required | Default |
-| ------------------------ | ------------------------------------------------------------------------------------------- | -------- | ------- |
-| `incident-io-token`      | incident.io API token for authentication                                                    | ✅       | -       |
-| `alert-source-config-id` | The alert source config ID from incident.io                                                 | ✅       | -       |
-| `title`                  | Title of the alert                                                                          | ✅       | -       |
-| `status`                 | Status of the alert (`firing` or `resolved`)                                                | ✅       | `firing`|
-| `description`            | Description with additional details (supports Markdown)                                     | ❌       | -       |
+| Input                    | Description                                                                                 | Required | Default          |
+| ------------------------ | ------------------------------------------------------------------------------------------- | -------- | ---------------- |
+| `incident-io-token`      | incident.io API token for authentication                                                    | ✅       | -                |
+| `alert-source-config-id` | The alert source config ID from incident.io                                                 | ✅       | -                |
+| `title`                  | Title of the alert                                                                          | ✅       | -                |
+| `status`                 | Status of the alert (`firing` or `resolved`)                                                | ✅       | `firing`         |
+| `description`            | Description with additional details (supports Markdown)                                     | ❌       | -                |
 | `deduplication-key`      | Unique deduplication key for this alert. Defaults to GitHub workflow run ID if not provided | ❌       | [Run ID][run-id] |
-| `source-url`             | Link to the alert source. Defaults to GitHub workflow run URL if not provided               | ❌       | Run URL |
-| `metadata`               | Additional metadata as JSON string                                                          | ❌       | `{}`    |
+| `source-url`             | Link to the alert source. Defaults to GitHub workflow run URL if not provided               | ❌       | Run URL          |
+| `metadata`               | Additional metadata as JSON string                                                          | ❌       | `{}`             |
 
 ### Outputs
 
