@@ -198,16 +198,16 @@ Complete technical reference for the action.
 
 ### Inputs
 
-| Input                    | Description                                                                                 | Required | Default |
-| ------------------------ | ------------------------------------------------------------------------------------------- | -------- | ------- |
-| `incident-io-token`      | incident.io API token for authentication                                                    | Yes      | -       |
-| `alert-source-config-id` | The alert source config ID from incident.io                                                 | Yes      | -       |
-| `title`                  | Title of the alert                                                                          | Yes      | -       |
-| `status`                 | Status of the alert (`firing` or `resolved`)                                                | Yes      | `firing`|
-| `description`            | Description with additional details (supports Markdown)                                     | No       | -       |
-| `deduplication-key`      | Unique deduplication key for this alert. Defaults to GitHub workflow run ID if not provided | No       | Run ID  |
-| `source-url`             | Link to the alert source. Defaults to GitHub workflow run URL if not provided               | No       | Run URL |
-| `metadata`               | Additional metadata as JSON string                                                          | No       | `{}`    |
+| Input                    | Description                                                                                 | Required | Default  |
+| ------------------------ | ------------------------------------------------------------------------------------------- | -------- | -------- |
+| `incident-io-token`      | incident.io API token for authentication                                                    | Yes      | -        |
+| `alert-source-config-id` | The alert source config ID from incident.io                                                 | Yes      | -        |
+| `title`                  | Title of the alert                                                                          | Yes      | -        |
+| `status`                 | Status of the alert (`firing` or `resolved`)                                                | Yes      | `firing` |
+| `description`            | Description with additional details (supports Markdown)                                     | No       | -        |
+| `deduplication-key`      | Unique deduplication key for this alert. Defaults to GitHub workflow run ID if not provided | No       | Run ID   |
+| `source-url`             | Link to the alert source. Defaults to GitHub workflow run URL if not provided               | No       | Run URL  |
+| `metadata`               | Additional metadata as JSON string                                                          | No       | `{}`     |
 
 ### Outputs
 
