@@ -18,8 +18,6 @@ management.
 > affiliated with, endorsed by, or supported by incident.io. incident.io and its
 > associated trademarks are property of Pineapple Technology Ltd.
 
-
-
 ## Table of Contents
 
 - [📚 Tutorial: Getting Started](#-tutorial-getting-started)
