@@ -1,4 +1,4 @@
-# incident.io Alert Action
+# incident.io Alert
 
 [![GitHub Super-Linter](https://github.com/lowlydba/incident-io-action/actions/workflows/linter.yml/badge.svg)](https://github.com/super-linter/super-linter)
 ![CI](https://github.com/lowlydba/incident-io-action/actions/workflows/ci.yml/badge.svg)
@@ -6,15 +6,17 @@
 [![CodeQL](https://github.com/lowlydba/incident-io-action/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/lowlydba/incident-io-action/actions/workflows/codeql-analysis.yml)
 [![Coverage](./badges/coverage.svg)](./badges/coverage.svg)
 
-> [!NOTE]
-> This is an unofficial, community-created GitHub Action and is not
-> affiliated with, endorsed by, or supported by incident.io. incident.io and its
-> associated trademarks are property of Pineapple Technology Ltd.
+[![Incident.io Alert Action OG](https://github.com/user-attachments/assets/08f97f96-9d17-4400-9feb-e00af64d4065)](https://github.com/user-attachments/assets/08f97f96-9d17-4400-9feb-e00af64d4065)
 
 Send alerts to incident.io from your GitHub Actions workflows using the Alert
 Events V2 API. This action automatically enriches alerts with GitHub workflow
 context, enabling seamless integration between your CI/CD pipeline and incident
 management.
+
+> [!NOTE]
+> This is an unofficial, community-created GitHub Action and is not
+> affiliated with, endorsed by, or supported by incident.io. incident.io and its
+> associated trademarks are property of Pineapple Technology Ltd.
 
 ## Table of Contents
 
