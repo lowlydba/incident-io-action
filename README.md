@@ -6,7 +6,7 @@
 [![CodeQL](https://github.com/lowlydba/incident-io-action/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/lowlydba/incident-io-action/actions/workflows/codeql-analysis.yml)
 [![Coverage](./badges/coverage.svg)](./badges/coverage.svg)
 
-<img width="600" height="315" alt="incidnet-io-action-og" src="https://github.com/user-attachments/assets/08f97f96-9d17-4400-9feb-e00af64d4065" />
+<img width="600" height="315" alt="incident-io-action-og" src="https://github.com/user-attachments/assets/08f97f96-9d17-4400-9feb-e00af64d4065" />
 
 Send alerts to incident.io from your GitHub Actions workflows using the Alert
 Events V2 API. This action automatically enriches alerts with GitHub workflow
