@@ -37,6 +37,8 @@ jobs:
           node-version-file: .node-version
           cache: npm
 
+      - uses: lowlydba/sustainable-npm@v1
+
       - name: Install Dependencies
         id: install
         run: npm ci
