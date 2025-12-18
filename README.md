@@ -2,9 +2,9 @@
 
 [![GitHub Super-Linter](https://github.com/lowlydba/incident-io-action/actions/workflows/linter.yml/badge.svg)](https://github.com/super-linter/super-linter)
 ![CI](https://github.com/lowlydba/incident-io-action/actions/workflows/ci.yml/badge.svg)
-[![Check dist/](https://github.com/lowlydba/incident-io-action/actions/workflows/check-dist.yml/badge.svg)](https://github.com/lowlydba/incident-io-action/actions/workflows/check-dist.yml)
-[![CodeQL](https://github.com/lowlydba/incident-io-action/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/lowlydba/incident-io-action/actions/workflows/codeql-analysis.yml)
 [![Coverage](./badges/coverage.svg)](./badges/coverage.svg)
+
+[![sustainable-npm](https://img.shields.io/badge/sustainable--npm-🌱-blue?style=flat)](https://github.com/marketplace/actions/sustainable-npm)
 
 [![Incident.io Alert Action OG](https://github.com/user-attachments/assets/08f97f96-9d17-4400-9feb-e00af64d4065)](https://github.com/user-attachments/assets/08f97f96-9d17-4400-9feb-e00af64d4065)
 
