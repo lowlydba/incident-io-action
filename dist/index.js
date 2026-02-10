@@ -28073,7 +28073,7 @@ async function run() {
                 metadata = JSON.parse(metadataJson);
             }
             catch (error) {
-                throw new Error(`Failed to parse metadata JSON: ${error instanceof Error ? error.message : String(error)}`);
+                throw new Error(`Failed to parse metadata JSON: ${error instanceof Error ? error.message : String(error)}`, { cause: error });
             }
         }
         // Add GitHub workflow context to metadata

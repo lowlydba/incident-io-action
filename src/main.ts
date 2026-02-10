@@ -92,7 +92,8 @@ export async function run(): Promise<void> {
         metadata = JSON.parse(metadataJson) as Record<string, unknown>
       } catch (error) {
         throw new Error(
-          `Failed to parse metadata JSON: ${error instanceof Error ? error.message : String(error)}`
+          `Failed to parse metadata JSON: ${error instanceof Error ? error.message : String(error)}`,
+          { cause: error }
         )
       }
     }
