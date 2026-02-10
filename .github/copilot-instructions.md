@@ -44,8 +44,14 @@ it is generated from.
 Install dependencies by running:
 
 ```bash
-npm install
+npm install --legacy-peer-deps
 ```
+
+**Note:** The `--legacy-peer-deps` flag is currently required because
+`@typescript-eslint/eslint-plugin@8.x` and `@typescript-eslint/parser@8.x` do
+not yet support ESLint v10. This flag allows npm to bypass peer dependency
+checks. Once `@typescript-eslint` releases a version compatible with ESLint
+v10, this flag will no longer be necessary.
 
 ## Testing
 
