@@ -59,3 +59,4 @@ jobs:
           VALIDATE_TYPESCRIPT_ES: false
           VALIDATE_JSON: false
           VALIDATE_ENV: false
+          VALIDATE_TRIVY: false # Not trusted after multiple supply chain explots
