@@ -4,7 +4,7 @@
 import assert from 'node:assert/strict'
 import { afterEach, beforeEach, describe, it, mock } from 'node:test'
 
-import * as core from '../__fixtures__/core.js'
+import * as core from '../__fixtures__/core.ts'
 
 // Mock @actions/core with our fixture functions before importing the module
 mock.module('@actions/core', {
