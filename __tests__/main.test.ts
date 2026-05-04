@@ -1,15 +1,20 @@
 /**
  * Unit tests for the action's main functionality, src/main.ts
  */
-import { jest } from '@jest/globals'
+import assert from 'node:assert/strict'
+import { afterEach, beforeEach, describe, it, mock } from 'node:test'
+
 import * as core from '../__fixtures__/core.js'
 
-// Mock fetch
-const mockFetch = jest.fn<typeof fetch>()
-global.fetch = mockFetch
+// Mock @actions/core with our fixture functions before importing the module
+mock.module('@actions/core', {
+  namedExports: core as unknown as Record<string, unknown>
+})
 
-// Mocks should be declared before the module being tested is imported.
-jest.unstable_mockModule('@actions/core', () => core)
+// Mock fetch - double assertion through `unknown` is required because `mock.fn()`
+// returns a `Mock<F>` wrapper type that is not directly assignable to `typeof fetch`
+const mockFetch = mock.fn<typeof fetch>()
+global.fetch = mockFetch as unknown as typeof fetch
 
 // The module being tested should be imported dynamically. This ensures that the
 // mocks are used in place of any actual dependencies.
@@ -41,74 +46,96 @@ describe('main.ts', () => {
     process.env.GITHUB_EVENT_NAME = 'push'
 
     // Set the action's inputs as return values from core.getInput().
-    core.getInput.mockImplementation(
-      (name: string) => defaultInputs[name] || ''
+    core.getInput.mock.mockImplementation(
+      (name: string) => defaultInputs[name] ?? ''
     )
 
     // Mock successful API response
-    mockFetch.mockResolvedValue({
-      ok: true,
-      status: 202,
-      json: async () => ({
-        deduplication_key: 'test-key',
-        message: 'Event accepted for processing',
-        status: 'success'
-      })
-    } as Response)
+    mockFetch.mock.mockImplementation(
+      async () =>
+        ({
+          ok: true,
+          status: 202,
+          json: async () => ({
+            deduplication_key: 'test-key',
+            message: 'Event accepted for processing',
+            status: 'success'
+          })
+        }) as unknown as Promise<Response>
+    )
   })
 
   afterEach(() => {
-    jest.resetAllMocks()
-    mockFetch.mockClear()
+    mock.reset()
   })
 
   it('Sends alert successfully with all inputs', async () => {
     await run()
 
     // Verify fetch was called with correct parameters
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining(
+    assert.strictEqual(mockFetch.mock.callCount(), 1)
+    const [url, init] = mockFetch.mock.calls[0].arguments
+    assert.ok(
+      (url as string).includes(
         'https://api.incident.io/v2/alert_events/http/test-config-id?token=test-token'
-      ),
-      expect.objectContaining({
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: expect.stringContaining('"title":"Test Alert"')
-      })
+      )
+    )
+    assert.strictEqual((init as RequestInit).method, 'POST')
+    assert.deepStrictEqual((init as RequestInit).headers, {
+      'Content-Type': 'application/json'
+    })
+    assert.ok(
+      ((init as RequestInit).body as string).includes('"title":"Test Alert"')
     )
 
     // Verify outputs were set
-    expect(core.setOutput).toHaveBeenCalledWith('deduplication-key', 'test-key')
-    expect(core.setOutput).toHaveBeenCalledWith('response-status', 'success')
+    assert.ok(
+      core.setOutput.mock.calls.some(
+        (call) =>
+          call.arguments[0] === 'deduplication-key' &&
+          call.arguments[1] === 'test-key'
+      )
+    )
+    assert.ok(
+      core.setOutput.mock.calls.some(
+        (call) =>
+          call.arguments[0] === 'response-status' &&
+          call.arguments[1] === 'success'
+      )
+    )
   })
 
   it('Sends alert with minimal inputs', async () => {
     // Override getInput to only return required fields
-    core.getInput.mockImplementation((name: string) => {
-      const minimalInputs = {
+    core.getInput.mock.mockImplementation((name: string) => {
+      const minimalInputs: Record<string, string> = {
         'incident-io-token': 'test-token',
         'alert-source-config-id': 'test-config-id',
         title: 'Test Alert',
         status: 'firing',
         metadata: '{}'
       }
-      return minimalInputs[name] || ''
+      return minimalInputs[name] ?? ''
     })
 
     await run()
 
     // Verify fetch was called
-    expect(mockFetch).toHaveBeenCalled()
+    assert.ok(mockFetch.mock.callCount() > 0)
 
     // Verify outputs were set
-    expect(core.setOutput).toHaveBeenCalledWith('deduplication-key', 'test-key')
+    assert.ok(
+      core.setOutput.mock.calls.some(
+        (call) =>
+          call.arguments[0] === 'deduplication-key' &&
+          call.arguments[1] === 'test-key'
+      )
+    )
   })
 
   it('Uses default alert source config ID when not provided', async () => {
     // Override getInput to not return alert-source-config-id
-    core.getInput.mockImplementation((name: string) => {
+    core.getInput.mock.mockImplementation((name: string) => {
       const inputs: Record<string, string> = {
         'incident-io-token': 'test-token',
         'alert-source-config-id': '', // Empty, should use default
@@ -116,28 +143,29 @@ describe('main.ts', () => {
         status: 'firing',
         metadata: '{}'
       }
-      return inputs[name] || ''
+      return inputs[name] ?? ''
     })
 
     await run()
 
     // Verify fetch was called with default config ID
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('01GW2G3V0S59R238FAHPDS1R66'),
-      expect.anything()
-    )
+    assert.strictEqual(mockFetch.mock.callCount(), 1)
+    const [url] = mockFetch.mock.calls[0].arguments
+    assert.ok((url as string).includes('01GW2G3V0S59R238FAHPDS1R66'))
   })
 
   it('Includes GitHub workflow context in metadata', async () => {
     await run()
 
     // Get the call arguments from fetch
-    const fetchCall = mockFetch.mock.calls[0]
-    const requestInit = fetchCall[1] as RequestInit
-    const requestBody = JSON.parse(requestInit.body as string)
+    assert.strictEqual(mockFetch.mock.callCount(), 1)
+    const [, init] = mockFetch.mock.calls[0].arguments
+    const requestBody = JSON.parse((init as RequestInit).body as string) as {
+      metadata: { github: Record<string, string> }
+    }
 
     // Verify GitHub context is included in metadata
-    expect(requestBody.metadata.github).toEqual({
+    assert.deepStrictEqual(requestBody.metadata.github, {
       workflow: 'Test Workflow',
       workflow_id: '123456',
       workflow_run_number: '1',
@@ -152,100 +180,118 @@ describe('main.ts', () => {
   })
 
   it('Uses default deduplication key if not provided', async () => {
-    core.getInput.mockImplementation((name: string) => {
+    core.getInput.mock.mockImplementation((name: string) => {
       const inputs: Record<string, string> = { ...defaultInputs }
       inputs['deduplication-key'] = ''
-      return inputs[name] || ''
+      return inputs[name] ?? ''
     })
 
     await run()
 
     // Get the call arguments from fetch
-    const fetchCall = mockFetch.mock.calls[0]
-    const requestInit = fetchCall[1] as RequestInit
-    const requestBody = JSON.parse(requestInit.body as string)
+    assert.strictEqual(mockFetch.mock.callCount(), 1)
+    const [, init] = mockFetch.mock.calls[0].arguments
+    const requestBody = JSON.parse((init as RequestInit).body as string) as {
+      deduplication_key: string
+    }
 
     // Verify default deduplication key is used
-    expect(requestBody.deduplication_key).toBe('123456')
+    assert.strictEqual(requestBody.deduplication_key, '123456')
   })
 
   it('Uses default source URL if not provided', async () => {
-    core.getInput.mockImplementation((name: string) => {
+    core.getInput.mock.mockImplementation((name: string) => {
       const inputs: Record<string, string> = { ...defaultInputs }
       inputs['source-url'] = ''
-      return inputs[name] || ''
+      return inputs[name] ?? ''
     })
 
     await run()
 
     // Get the call arguments from fetch
-    const fetchCall = mockFetch.mock.calls[0]
-    const requestInit = fetchCall[1] as RequestInit
-    const requestBody = JSON.parse(requestInit.body as string)
+    assert.strictEqual(mockFetch.mock.callCount(), 1)
+    const [, init] = mockFetch.mock.calls[0].arguments
+    const requestBody = JSON.parse((init as RequestInit).body as string) as {
+      source_url: string
+    }
 
     // Verify default source URL is used
-    expect(requestBody.source_url).toBe(
+    assert.strictEqual(
+      requestBody.source_url,
       'https://github.com/test-owner/test-repo/actions/runs/123456'
     )
   })
 
   it('Handles invalid status', async () => {
-    core.getInput.mockImplementation((name: string) => {
+    core.getInput.mock.mockImplementation((name: string) => {
       if (name === 'status') return 'invalid-status'
-      return defaultInputs[name] || ''
+      return defaultInputs[name] ?? ''
     })
 
     await run()
 
     // Verify that the action was marked as failed
-    expect(core.setFailed).toHaveBeenCalledWith(
-      expect.stringContaining('Invalid status')
+    assert.ok(
+      core.setFailed.mock.calls.some((call) =>
+        (call.arguments[0] as string).includes('Invalid status')
+      )
     )
   })
 
   it('Handles invalid metadata JSON', async () => {
-    core.getInput.mockImplementation((name: string) => {
+    core.getInput.mock.mockImplementation((name: string) => {
       if (name === 'metadata') return 'invalid-json'
-      return defaultInputs[name] || ''
+      return defaultInputs[name] ?? ''
     })
 
     await run()
 
     // Verify that the action was marked as failed
-    expect(core.setFailed).toHaveBeenCalledWith(
-      expect.stringContaining('Failed to parse metadata JSON')
+    assert.ok(
+      core.setFailed.mock.calls.some((call) =>
+        (call.arguments[0] as string).includes('Failed to parse metadata JSON')
+      )
     )
   })
 
   it('Handles API error responses', async () => {
-    mockFetch.mockResolvedValue({
-      ok: false,
-      status: 400,
-      text: async () => 'Bad Request'
-    } as Response)
+    mockFetch.mock.mockImplementation(
+      async () =>
+        ({
+          ok: false,
+          status: 400,
+          text: async () => 'Bad Request'
+        }) as unknown as Promise<Response>
+    )
 
     await run()
 
     // Verify that the action was marked as failed
-    expect(core.setFailed).toHaveBeenCalledWith(
-      expect.stringContaining('incident.io API request failed with status 400')
+    assert.ok(
+      core.setFailed.mock.calls.some((call) =>
+        (call.arguments[0] as string).includes(
+          'incident.io API request failed with status 400'
+        )
+      )
     )
   })
 
   it('Handles resolved status', async () => {
-    core.getInput.mockImplementation((name: string) => {
+    core.getInput.mock.mockImplementation((name: string) => {
       if (name === 'status') return 'resolved'
-      return defaultInputs[name] || ''
+      return defaultInputs[name] ?? ''
     })
 
     await run()
 
     // Get the call arguments from fetch
-    const fetchCall = mockFetch.mock.calls[0]
-    const requestInit = fetchCall[1] as RequestInit
-    const requestBody = JSON.parse(requestInit.body as string)
+    assert.strictEqual(mockFetch.mock.callCount(), 1)
+    const [, init] = mockFetch.mock.calls[0].arguments
+    const requestBody = JSON.parse((init as RequestInit).body as string) as {
+      status: string
+    }
 
     // Verify status is set to resolved
-    expect(requestBody.status).toBe('resolved')
+    assert.strictEqual(requestBody.status, 'resolved')
   })
 })
