@@ -5,20 +5,12 @@ import assert from 'node:assert/strict'
 import { afterEach, beforeEach, describe, it, mock } from 'node:test'
 
 import * as core from '../__fixtures__/core.ts'
-
-// Mock @actions/core with our fixture functions before importing the module
-mock.module('@actions/core', {
-  namedExports: core as unknown as Record<string, unknown>
-})
+import { run } from '../src/main.ts'
 
 // Mock fetch - double assertion through `unknown` is required because `mock.fn()`
 // returns a `Mock<F>` wrapper type that is not directly assignable to `typeof fetch`
 const mockFetch = mock.fn<typeof fetch>()
 global.fetch = mockFetch as unknown as typeof fetch
-
-// The module being tested should be imported dynamically. This ensures that the
-// mocks are used in place of any actual dependencies.
-const { run } = await import('../src/main.js')
 
 describe('main.ts', () => {
   const defaultInputs: Record<string, string> = {
@@ -70,7 +62,7 @@ describe('main.ts', () => {
   })
 
   it('Sends alert successfully with all inputs', async () => {
-    await run()
+    await run(core)
 
     // Verify fetch was called with correct parameters
     assert.strictEqual(mockFetch.mock.callCount(), 1)
@@ -118,7 +110,7 @@ describe('main.ts', () => {
       return minimalInputs[name] ?? ''
     })
 
-    await run()
+    await run(core)
 
     // Verify fetch was called
     assert.ok(mockFetch.mock.callCount() > 0)
@@ -146,7 +138,7 @@ describe('main.ts', () => {
       return inputs[name] ?? ''
     })
 
-    await run()
+    await run(core)
 
     // Verify fetch was called with default config ID
     assert.strictEqual(mockFetch.mock.callCount(), 1)
@@ -155,7 +147,7 @@ describe('main.ts', () => {
   })
 
   it('Includes GitHub workflow context in metadata', async () => {
-    await run()
+    await run(core)
 
     // Get the call arguments from fetch
     assert.strictEqual(mockFetch.mock.callCount(), 1)
@@ -186,7 +178,7 @@ describe('main.ts', () => {
       return inputs[name] ?? ''
     })
 
-    await run()
+    await run(core)
 
     // Get the call arguments from fetch
     assert.strictEqual(mockFetch.mock.callCount(), 1)
@@ -206,7 +198,7 @@ describe('main.ts', () => {
       return inputs[name] ?? ''
     })
 
-    await run()
+    await run(core)
 
     // Get the call arguments from fetch
     assert.strictEqual(mockFetch.mock.callCount(), 1)
@@ -228,7 +220,7 @@ describe('main.ts', () => {
       return defaultInputs[name] ?? ''
     })
 
-    await run()
+    await run(core)
 
     // Verify that the action was marked as failed
     assert.ok(
@@ -244,7 +236,7 @@ describe('main.ts', () => {
       return defaultInputs[name] ?? ''
     })
 
-    await run()
+    await run(core)
 
     // Verify that the action was marked as failed
     assert.ok(
@@ -264,7 +256,7 @@ describe('main.ts', () => {
         }) as unknown as Promise<Response>
     )
 
-    await run()
+    await run(core)
 
     // Verify that the action was marked as failed
     assert.ok(
@@ -282,7 +274,7 @@ describe('main.ts', () => {
       return defaultInputs[name] ?? ''
     })
 
-    await run()
+    await run(core)
 
     // Get the call arguments from fetch
     assert.strictEqual(mockFetch.mock.callCount(), 1)
