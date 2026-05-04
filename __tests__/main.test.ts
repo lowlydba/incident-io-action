@@ -59,6 +59,14 @@ describe('main.ts', () => {
 
   afterEach(() => {
     mock.reset()
+    // mock.reset() does not reset call history for standalone mock.fn() instances,
+    // so we reset them explicitly here.
+    mockFetch.mock.resetCalls()
+    core.debug.mock.resetCalls()
+    core.info.mock.resetCalls()
+    core.getInput.mock.resetCalls()
+    core.setOutput.mock.resetCalls()
+    core.setFailed.mock.resetCalls()
   })
 
   it('Sends alert successfully with all inputs', async () => {
