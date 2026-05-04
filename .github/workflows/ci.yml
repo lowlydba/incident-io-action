@@ -123,3 +123,15 @@ jobs:
           echo "ℹ️ End-to-end tests are skipped for PRs from forks"
           echo "The action will be tested with unit tests only"
           echo "E2E tests will run when changes are pushed to the main repository"
+
+  all-good:
+    name: All Tests Pass
+    runs-on: ubuntu-latest
+    needs: [test-typescript, test-action, test-action-without-secrets]
+    if: always()
+
+    steps:
+      - name: Check all job results
+        uses: lowlydba/are-we-good@bb8ee9e793e4233fac1992bb880e2a28bed7f42f # v1.0.3
+        with:
+          jobs: ${{ toJSON(needs) }}

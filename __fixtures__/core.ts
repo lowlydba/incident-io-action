@@ -1,10 +1,10 @@
 import type * as core from '@actions/core'
-import { jest } from '@jest/globals'
+import { mock } from 'node:test'
 
-export const debug = jest.fn<typeof core.debug>()
-export const error = jest.fn<typeof core.error>()
-export const info = jest.fn<typeof core.info>()
-export const getInput = jest.fn<typeof core.getInput>()
-export const setOutput = jest.fn<typeof core.setOutput>()
-export const setFailed = jest.fn<typeof core.setFailed>()
-export const warning = jest.fn<typeof core.warning>()
+export const debug = mock.fn<typeof core.debug>()
+export const error = mock.fn<typeof core.error>()
+export const info = mock.fn<typeof core.info>()
+export const getInput = mock.fn<typeof core.getInput>()
+export const setOutput = mock.fn<typeof core.setOutput>()
+export const setFailed = mock.fn<typeof core.setFailed>()
+export const warning = mock.fn<typeof core.warning>()

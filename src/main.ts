@@ -1,5 +1,11 @@
 import * as core from '@actions/core'
 
+/** Subset of @actions/core used by this action */
+type CoreApi = Pick<
+  typeof core,
+  'debug' | 'info' | 'getInput' | 'setOutput' | 'setFailed'
+>
+
 /**
  * Interface for the incident.io alert event request body
  */
@@ -27,17 +33,19 @@ interface AlertEventResponse {
  * @param token - The incident.io API token
  * @param alertSourceConfigId - The alert source config ID
  * @param payload - The alert event payload
+ * @param coreApi - The @actions/core API (injectable for testing)
  * @returns The response from the incident.io API
  */
 async function sendAlert(
   token: string,
   alertSourceConfigId: string,
-  payload: AlertEventRequest
+  payload: AlertEventRequest,
+  coreApi: CoreApi
 ): Promise<AlertEventResponse> {
   const url = `https://api.incident.io/v2/alert_events/http/${alertSourceConfigId}?token=${encodeURIComponent(token)}`
 
-  core.debug(`Sending alert to incident.io: ${url}`)
-  core.debug(`Payload: ${JSON.stringify(payload, null, 2)}`)
+  coreApi.debug(`Sending alert to incident.io: ${url}`)
+  coreApi.debug(`Payload: ${JSON.stringify(payload, null, 2)}`)
 
   const response = await fetch(url, {
     method: 'POST',
@@ -60,23 +68,24 @@ async function sendAlert(
 /**
  * The main function for the action.
  *
+ * @param coreApi - The @actions/core API (injectable for testing)
  * @returns Resolves when the action is complete.
  */
-export async function run(): Promise<void> {
+export async function run(coreApi: CoreApi = core): Promise<void> {
   try {
     // Get inputs
-    const token = core.getInput('incident-io-token', { required: true })
+    const token = coreApi.getInput('incident-io-token', { required: true })
     const alertSourceConfigId =
-      core.getInput('alert-source-config-id', { required: false }) ||
+      coreApi.getInput('alert-source-config-id', { required: false }) ||
       '01GW2G3V0S59R238FAHPDS1R66'
-    const title = core.getInput('title', { required: true })
-    const status = core.getInput('status', { required: true }) as
+    const title = coreApi.getInput('title', { required: true })
+    const status = coreApi.getInput('status', { required: true }) as
       | 'firing'
       | 'resolved'
-    const description = core.getInput('description')
-    const deduplicationKey = core.getInput('deduplication-key')
-    const sourceUrl = core.getInput('source-url')
-    const metadataJson = core.getInput('metadata')
+    const description = coreApi.getInput('description')
+    const deduplicationKey = coreApi.getInput('deduplication-key')
+    const sourceUrl = coreApi.getInput('source-url')
+    const metadataJson = coreApi.getInput('metadata')
 
     // Validate status
     if (status !== 'firing' && status !== 'resolved') {
@@ -139,22 +148,27 @@ export async function run(): Promise<void> {
 
     payload.metadata = metadata
 
-    core.info(`Sending alert to incident.io...`)
-    core.info(`Title: ${title}`)
-    core.info(`Status: ${status}`)
-    core.info(`Deduplication Key: ${payload.deduplication_key}`)
+    coreApi.info(`Sending alert to incident.io...`)
+    coreApi.info(`Title: ${title}`)
+    coreApi.info(`Status: ${status}`)
+    coreApi.info(`Deduplication Key: ${payload.deduplication_key}`)
 
     // Send the alert
-    const response = await sendAlert(token, alertSourceConfigId, payload)
+    const response = await sendAlert(
+      token,
+      alertSourceConfigId,
+      payload,
+      coreApi
+    )
 
-    core.info(`Alert sent successfully!`)
-    core.info(`Response: ${response.message}`)
+    coreApi.info(`Alert sent successfully!`)
+    coreApi.info(`Response: ${response.message}`)
 
     // Set outputs
-    core.setOutput('deduplication-key', response.deduplication_key)
-    core.setOutput('response-status', response.status)
+    coreApi.setOutput('deduplication-key', response.deduplication_key)
+    coreApi.setOutput('response-status', response.status)
   } catch (error) {
     // Fail the workflow run if an error occurs
-    if (error instanceof Error) core.setFailed(error.message)
+    if (error instanceof Error) coreApi.setFailed(error.message)
   }
 }
