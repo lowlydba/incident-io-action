@@ -80,8 +80,7 @@ export async function run(coreApi: CoreApi = core): Promise<void> {
       '01GW2G3V0S59R238FAHPDS1R66'
     const title = coreApi.getInput('title', { required: true })
     const status = coreApi.getInput('status', { required: true }) as
-      | 'firing'
-      | 'resolved'
+      'firing' | 'resolved'
     const description = coreApi.getInput('description')
     const deduplicationKey = coreApi.getInput('deduplication-key')
     const sourceUrl = coreApi.getInput('source-url')
