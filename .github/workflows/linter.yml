@@ -56,6 +56,7 @@ jobs:
           VALIDATE_GITHUB_ACTIONS_ZIZMOR: false
           VALIDATE_JAVASCRIPT_ES: false
           VALIDATE_JSCPD: false
+          VALIDATE_TYPESCRIPT_PRETTIER: false
           VALIDATE_TYPESCRIPT_ES: false
           VALIDATE_JSON: false
           VALIDATE_ENV: false
