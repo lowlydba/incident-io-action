@@ -61,17 +61,17 @@
     "rollup": "^4.62.3",
     "rollup-plugin-esbuild": "^6.2.1",
     "@typescript/native": "npm:typescript@^7.0.2",
-    "typescript": "npm:@typescript/typescript6@^6.0.2"
+    "typescript": "npm:@typescript/typescript6@~6.0.2"
   },
   "overrides": {
     "@typescript-eslint/eslint-plugin": {
-      "typescript": "npm:@typescript/typescript6@^6.0.2"
+      "typescript": "npm:@typescript/typescript6@~6.0.2"
     },
     "@typescript-eslint/parser": {
-      "typescript": "npm:@typescript/typescript6@^6.0.2"
+      "typescript": "npm:@typescript/typescript6@~6.0.2"
     },
     "@typescript-eslint/typescript-estree": {
-      "typescript": "npm:@typescript/typescript6@^6.0.2"
+      "typescript": "npm:@typescript/typescript6@~6.0.2"
     }
   },
   "optionalDependencies": {
