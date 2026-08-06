@@ -37,7 +37,8 @@
     "package": "npx rollup --config rollup.config.ts --configPlugin rollup-plugin-esbuild",
     "package:watch": "npm run package -- --watch",
     "test": "node --test '__tests__/**/*.test.ts'",
-    "all": "npm run format:write && npm run lint && npm run test && npm run package"
+    "typecheck": "npx tsc --noEmit -p tsconfig.json",
+    "all": "npm run format:write && npm run lint && npm run typecheck && npm run test && npm run package"
   },
   "license": "MIT",
   "dependencies": {
