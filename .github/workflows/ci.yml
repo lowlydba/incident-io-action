@@ -182,7 +182,7 @@ jobs:
 
   all-good:
     name: All Tests Pass
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     needs: [test-typescript, test-action, test-action-without-secrets]
     if: always()
 
