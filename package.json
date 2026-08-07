@@ -34,10 +34,11 @@
     "format:check": "npx prettier --check .",
     "lint": "npx eslint .",
     "local-action": "npx @github/local-action . src/main.ts .env",
-    "package": "npx rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript",
+    "package": "npx rollup --config rollup.config.ts --configPlugin rollup-plugin-esbuild",
     "package:watch": "npm run package -- --watch",
     "test": "node --test '__tests__/**/*.test.ts'",
-    "all": "npm run format:write && npm run lint && npm run test && npm run package"
+    "typecheck": "npx tsc --noEmit -p tsconfig.json",
+    "all": "npm run format:write && npm run lint && npm run typecheck && npm run test && npm run package"
   },
   "license": "MIT",
   "dependencies": {
@@ -48,10 +49,9 @@
     "@github/local-action": "^7.0.1",
     "@rollup/plugin-commonjs": "^29.0.3",
     "@rollup/plugin-node-resolve": "^16.0.3",
-    "@rollup/plugin-typescript": "^12.3.0",
     "@types/node": "^26.1.2",
-    "@typescript-eslint/eslint-plugin": "^8.65.0",
-    "@typescript-eslint/parser": "^8.32.1",
+    "@typescript-eslint/eslint-plugin": "^8.66.0",
+    "@typescript-eslint/parser": "^8.66.0",
     "eslint": "^10.8.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-import-resolver-typescript": "^4.4.5",
@@ -60,7 +60,20 @@
     "prettier": "^3.9.6",
     "prettier-eslint": "^16.4.2",
     "rollup": "^4.62.3",
-    "typescript": "^6.0.3"
+    "rollup-plugin-esbuild": "^6.2.1",
+    "@typescript/native": "npm:typescript@^7.0.2",
+    "typescript": "npm:@typescript/typescript6@~6.0.2"
+  },
+  "overrides": {
+    "@typescript-eslint/eslint-plugin": {
+      "typescript": "npm:@typescript/typescript6@~6.0.2"
+    },
+    "@typescript-eslint/parser": {
+      "typescript": "npm:@typescript/typescript6@~6.0.2"
+    },
+    "@typescript-eslint/typescript-estree": {
+      "typescript": "npm:@typescript/typescript6@~6.0.2"
+    }
   },
   "optionalDependencies": {
     "@rollup/rollup-linux-x64-gnu": "*"

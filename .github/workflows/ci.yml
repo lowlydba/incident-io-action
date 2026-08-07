@@ -42,6 +42,10 @@ jobs:
         id: npm-lint
         run: npm run lint
 
+      - name: Typecheck
+        id: npm-typecheck
+        run: npm run typecheck
+
       - name: Test
         id: npm-ci-test
         run: npm run ci-test
@@ -82,10 +86,15 @@ jobs:
             }
 
       - name: Verify Firing Alert Success
+        env:
+          DEDUP_KEY: ${{ steps.test-firing.outputs.deduplication-key }}
+          RESPONSE_STATUS: ${{ steps.test-firing.outputs.response-status }}
         run: |
+          test -n "$DEDUP_KEY" || { echo "::error::deduplication-key output is empty"; exit 1; }
+          test -n "$RESPONSE_STATUS" || { echo "::error::response-status output is empty"; exit 1; }
           echo "✅ Firing alert sent successfully!"
-          echo "Deduplication Key: ${{ steps.test-firing.outputs.deduplication-key }}"
-          echo "Response Status: ${{ steps.test-firing.outputs.response-status }}"
+          echo "Deduplication Key: $DEDUP_KEY"
+          echo "Response Status: $RESPONSE_STATUS"
 
       - name: Wait Before Resolving
         run: sleep 5
@@ -102,10 +111,40 @@ jobs:
           deduplication-key: ${{ steps.test-firing.outputs.deduplication-key }}
 
       - name: Verify Resolved Alert Success
+        env:
+          FIRING_KEY: ${{ steps.test-firing.outputs.deduplication-key }}
+          DEDUP_KEY: ${{ steps.test-resolved.outputs.deduplication-key }}
+          RESPONSE_STATUS: ${{ steps.test-resolved.outputs.response-status }}
         run: |
+          test -n "$DEDUP_KEY" || { echo "::error::deduplication-key output is empty"; exit 1; }
+          test -n "$RESPONSE_STATUS" || { echo "::error::response-status output is empty"; exit 1; }
+          if [ "$DEDUP_KEY" != "$FIRING_KEY" ]; then
+            echo "::error::resolved dedup key ($DEDUP_KEY) does not match firing dedup key ($FIRING_KEY)"
+            exit 1
+          fi
           echo "✅ Resolved alert sent successfully!"
-          echo "Deduplication Key: ${{ steps.test-resolved.outputs.deduplication-key }}"
-          echo "Response Status: ${{ steps.test-resolved.outputs.response-status }}"
+          echo "Deduplication Key: $DEDUP_KEY"
+          echo "Response Status: $RESPONSE_STATUS"
+
+      - name: Send Alert With Invalid Status
+        id: test-invalid-status
+        uses: ./
+        continue-on-error: true
+        with:
+          incident-io-token: ${{ secrets.INCIDENT_IO_TOKEN }}
+          alert-source-config-id: '01K77NXDEHQPQAN0Y0A1600D1N'
+          title: 'CI Test Alert - Invalid Status'
+          status: 'bogus'
+
+      - name: Verify Invalid Status Fails
+        env:
+          OUTCOME: ${{ steps.test-invalid-status.outcome }}
+        run: |
+          if [ "$OUTCOME" != "failure" ]; then
+            echo "::error::invalid status was accepted (outcome: $OUTCOME)"
+            exit 1
+          fi
+          echo "✅ Invalid status rejected as expected"
 
   test-action-without-secrets:
     name: Test Without Secrets (Dry Run)
@@ -118,15 +157,32 @@ jobs:
         id: checkout
         uses: actions/checkout@v7
 
-      - name: Notice About Skipped E2E Tests
+      # No secrets on fork PRs, but input validation fails before any API
+      # call, so this still proves the bundle loads and runs on node24.
+      - name: Run Bundle With Invalid Status
+        id: test-bundle
+        uses: ./
+        continue-on-error: true
+        with:
+          incident-io-token: 'dummy-token'
+          alert-source-config-id: 'dummy-config-id'
+          title: 'CI Dry Run - Invalid Status'
+          status: 'bogus'
+
+      - name: Verify Bundle Fails Cleanly
+        env:
+          OUTCOME: ${{ steps.test-bundle.outcome }}
         run: |
-          echo "ℹ️ End-to-end tests are skipped for PRs from forks"
-          echo "The action will be tested with unit tests only"
-          echo "E2E tests will run when changes are pushed to the main repository"
+          if [ "$OUTCOME" != "failure" ]; then
+            echo "::error::invalid status was accepted (outcome: $OUTCOME)"
+            exit 1
+          fi
+          echo "✅ Bundle executed and rejected invalid input as expected"
+          echo "ℹ️ Full E2E tests run after merge to the main repository"
 
   all-good:
     name: All Tests Pass
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     needs: [test-typescript, test-action, test-action-without-secrets]
     if: always()
 
